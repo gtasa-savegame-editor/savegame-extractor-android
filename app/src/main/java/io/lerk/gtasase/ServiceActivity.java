@@ -2,9 +2,13 @@ package io.lerk.gtasase;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -18,10 +22,22 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ServiceActivity extends AppCompatActivity {
 
@@ -145,14 +161,15 @@ public class ServiceActivity extends AppCompatActivity {
     private void updateTitlebarText() {
         String titleText = serviceAdresses[0] + ":" + servicePort + ((localView) ? " (local)" : " (remote)");
         ActionBar toolbar = getSupportActionBar();
-        if(toolbar != null) {
+        if (toolbar != null) {
             toolbar.setTitle(titleText);
         }
     }
 
     @Override
+    @SuppressLint("StaticFieldLeak") // the AsyncTask should (eg. will) finish before the activity
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(localView) {
+        if (localView) {
             savegameListView.setAdapter(new ArrayAdapter<File>(this, R.layout.layout_savegame) {
                 @Override
                 public View getView(int position, View convertView, ViewGroup parent) {
@@ -188,29 +205,91 @@ public class ServiceActivity extends AppCompatActivity {
 
                         @Override
                         protected Throwable doInBackground(Void... voids) {
-                            //TODO download file
+                            DownloadManager downloadmanager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                            Uri uri = Uri.parse("http://" + serviceAdresses[0] + ":" + servicePort + "/get/" + item.getName());
+                            DownloadManager.Request request = new DownloadManager.Request(uri);
+                            request.setTitle(item.getName());
+                            request.setDescription("Downloading Savegame...");
+                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, item.getName());
+                            downloadmanager.enqueue(request);
                             return null;
                         }
 
                         @Override
                         protected void onPostExecute(Throwable ex) {
                             snackbar.dismiss();
-                            if (ex == null) {
-                                new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                        .setTitle(R.string.download_success_title)
-                                        .setMessage(R.string.download_success_message).show();
-                            } else {
-                                new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                        .setTitle(R.string.download_error_title)
-                                        .setMessage(ex.getMessage()).show();
-                            }
                         }
                     }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR));
 
                     return view;
                 }
             });
-            //TODO execute another async task that fills the adapter with stuff fetched from /list
+            new AsyncTask<Void, Void, ArrayList<File>>() {
+
+                private Snackbar snackbar;
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), "Fetching Savegames...", Snackbar.LENGTH_INDEFINITE);
+                    snackbar.show();
+                }
+
+                @Override
+                protected ArrayList<File> doInBackground(Void... voids) {
+                    try {
+                        URL url = new URL("http://" + serviceAdresses[0] + ":" + servicePort + "/list");
+                        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                        con.setRequestMethod("GET");
+                        Log.d(TAG, "Fetch available savegames: " + con.getResponseCode());
+                        BufferedReader in = new BufferedReader(
+                                new InputStreamReader(con.getInputStream()));
+                        String inputLine;
+                        StringBuffer content = new StringBuffer();
+                        while ((inputLine = in.readLine()) != null) {
+                            content.append(inputLine);
+                        }
+                        in.close();
+                        con.disconnect();
+                        ArrayList<File> res = new ArrayList<>();
+                        ArrayList<HashMap<String, String>> results = new ObjectMapper().readValue(content.toString(), ArrayList.class);
+                        results.forEach(m -> res.add(new File(m.get("name"))));
+                        return res;
+                    } catch (ProtocolException e) {
+                        ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        Log.e(TAG, "Unable to fetch available savegames!", e);
+                    } catch (MalformedURLException e) {
+                        ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        Log.e(TAG, "Unable to fetch available savegames!", e);
+                    } catch (IOException e) {
+                        ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        Log.e(TAG, "Unable to fetch available savegames!", e);
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(ArrayList<File> files) {
+                    snackbar.dismiss();
+                    if (files != null) {
+                        if (files.size() > 0) {
+                            Toast.makeText(ServiceActivity.this, R.string.fetching_success_message, Toast.LENGTH_LONG).show();
+                            @SuppressWarnings("unchecked") ArrayAdapter<File> adapter = (ArrayAdapter<File>) savegameListView.getAdapter();
+                            files.forEach(adapter::add);
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
+                                    .setTitle(R.string.fetching_error_title)
+                                    .setMessage(R.string.fetching_error_message_no_files).show();
+                        }
+                    } else {
+                        new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
+                                .setTitle(R.string.fetching_error_title)
+                                .setMessage(R.string.fetching_error_message_error).show();
+                    }
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
             savegameListView.setAdapter(localFileAdapter);
         }

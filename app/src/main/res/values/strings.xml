@@ -12,4 +12,8 @@
     <string name="download_success_title">Download Success</string>
     <string name="download_success_message">Download completed successfully</string>
     <string name="download_error_title">Error Downloading Savegame</string>
+    <string name="fetching_error_title">Error Fetching Savegames</string>
+    <string name="fetching_success_message">Successfully fetched available savegames.</string>
+    <string name="fetching_error_message_no_files">No savegames available.</string>
+    <string name="fetching_error_message_error">Connection Error!</string>
 </resources>
