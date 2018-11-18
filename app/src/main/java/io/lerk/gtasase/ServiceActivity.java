@@ -34,8 +34,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -99,7 +97,7 @@ public class ServiceActivity extends AppCompatActivity {
                     @Override
                     protected void onPreExecute() {
                         super.onPreExecute();
-                        snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), "Uploading...", Snackbar.LENGTH_INDEFINITE);
+                        snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), R.string.uploading, Snackbar.LENGTH_INDEFINITE);
                         snackbar.show();
                     }
 
@@ -159,7 +157,8 @@ public class ServiceActivity extends AppCompatActivity {
     }
 
     private void updateTitlebarText() {
-        String titleText = serviceAdresses[0] + ":" + servicePort + ((localView) ? " (local)" : " (remote)");
+        String titleText = serviceAdresses[0] + ":" + servicePort + ((localView) ?
+                getString(R.string.view_mode_suffix_local) : getString(R.string.view_mode_suffix_remote));
         ActionBar toolbar = getSupportActionBar();
         if (toolbar != null) {
             toolbar.setTitle(titleText);
@@ -199,7 +198,7 @@ public class ServiceActivity extends AppCompatActivity {
                         @Override
                         protected void onPreExecute() {
                             super.onPreExecute();
-                            snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), "Downloading...", Snackbar.LENGTH_INDEFINITE);
+                            snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), R.string.downloading, Snackbar.LENGTH_INDEFINITE);
                             snackbar.show();
                         }
 
@@ -209,7 +208,7 @@ public class ServiceActivity extends AppCompatActivity {
                             Uri uri = Uri.parse("http://" + serviceAdresses[0] + ":" + servicePort + "/get/" + item.getName());
                             DownloadManager.Request request = new DownloadManager.Request(uri);
                             request.setTitle(item.getName());
-                            request.setDescription("Downloading Savegame...");
+                            request.setDescription(getString(R.string.downloading_message));
                             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, item.getName());
                             downloadmanager.enqueue(request);
@@ -232,7 +231,7 @@ public class ServiceActivity extends AppCompatActivity {
                 @Override
                 protected void onPreExecute() {
                     super.onPreExecute();
-                    snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), "Fetching Savegames...", Snackbar.LENGTH_INDEFINITE);
+                    snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), R.string.fetching_message, Snackbar.LENGTH_INDEFINITE);
                     snackbar.show();
                 }
 
@@ -246,7 +245,7 @@ public class ServiceActivity extends AppCompatActivity {
                         BufferedReader in = new BufferedReader(
                                 new InputStreamReader(con.getInputStream()));
                         String inputLine;
-                        StringBuffer content = new StringBuffer();
+                        StringBuilder content = new StringBuilder();
                         while ((inputLine = in.readLine()) != null) {
                             content.append(inputLine);
                         }

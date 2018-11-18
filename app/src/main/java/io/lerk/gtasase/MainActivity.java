@@ -124,7 +124,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     protected void onPreExecute() {
                         super.onPreExecute();
-                        snackbar = Snackbar.make(MainActivity.this.findViewById(R.id.mainContent), "Searching...", Snackbar.LENGTH_INDEFINITE);
+                        ((ArrayAdapter<ServiceInfo>) serviceList.getAdapter()).clear();
+                        snackbar = Snackbar.make(MainActivity.this.findViewById(R.id.mainContent), R.string.searching_services, Snackbar.LENGTH_INDEFINITE);
                         snackbar.show();
                         fab.setEnabled(false);
                     }
@@ -135,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                             if (jmdns == null) {
                                 jmdns = JmDNS.create(getDeviceIpAddress(wifi));
                             }
-                            return jmdns.list("_gtasa-se._tcp", 6000);
+                            return jmdns.list("_gtasa-se._tcp.local.", 6000);
                         } catch (IOException e) {
                             Log.e(TAG, "Unable to start mDNS listener!", e);
                         } catch (ClassCastException e) {
@@ -167,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                snackbar = Snackbar.make(MainActivity.this.findViewById(R.id.mainContent), "Searching...", Snackbar.LENGTH_INDEFINITE);
+                snackbar = Snackbar.make(MainActivity.this.findViewById(R.id.mainContent), R.string.searching_services, Snackbar.LENGTH_INDEFINITE);
                 snackbar.show();
             }
 
@@ -177,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                     if (jmdns == null) {
                         jmdns = JmDNS.create(getDeviceIpAddress(wifi));
                     }
-                    return jmdns.list("_gtasa-se._tcp.local.", 10000);
+                    return jmdns.list("_gtasa-se._tcp.local.", 6000);
                 } catch (IOException e) {
                     Log.e(TAG, "Unable to start mDNS listener!", e);
                 } catch (ClassCastException e) {

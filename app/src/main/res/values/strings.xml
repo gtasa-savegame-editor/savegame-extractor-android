@@ -16,4 +16,11 @@
     <string name="fetching_success_message">Successfully fetched available savegames.</string>
     <string name="fetching_error_message_no_files">No savegames available.</string>
     <string name="fetching_error_message_error">Connection Error!</string>
+    <string name="searching_services">Searching for Savegame Editors…</string>
+    <string name="uploading">Uploading…</string>
+    <string name="view_mode_suffix_local">&#160;(local)</string>
+    <string name="view_mode_suffix_remote">&#160;(remote)</string>
+    <string name="downloading">Downloading…</string>
+    <string name="downloading_message">Downloading savegame…</string>
+    <string name="fetching_message">Fetching available savegames…</string>
 </resources>
