@@ -7,20 +7,20 @@
     tools:context=".ServiceActivity"
     android:id="@+id/serviceContent">
 
-    <TextView
-        android:id="@+id/serverAddress"
-        android:layout_marginTop="@dimen/layout_margin"
-        android:layout_marginBottom="@dimen/layout_margin"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/service_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"
-        android:text="Address:Port"
-        android:textAlignment="center"/>
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:titleTextColor="#ffffff"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/serverAddress">
+        android:layout_below="@id/service_toolbar">
         <ListView
             android:id="@+id/savegameListView"
             android:layout_width="match_parent"

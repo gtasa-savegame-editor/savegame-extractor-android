@@ -6,8 +6,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.design.widget.Snackbar;
+import android.support.v7.view.menu.MenuBuilder;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,19 +20,7 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.List;
-
-import javax.jmdns.ServiceInfo;
 
 public class ServiceActivity extends Activity {
 
@@ -75,9 +64,9 @@ public class ServiceActivity extends Activity {
             }
         });
 
-        TextView titleView = findViewById(R.id.serverAddress);
         String titleText = serviceAdresses[0] + ":" + servicePort;
-        titleView.setText(titleText);
+        Toolbar toolbar = findViewById(R.id.service_toolbar);
+        toolbar.setTitle(titleText);
 
         ArrayList<File> search = FileSearch.search();
         search.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
