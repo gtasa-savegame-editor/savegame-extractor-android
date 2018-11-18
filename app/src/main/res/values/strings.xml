@@ -2,4 +2,9 @@
     <string name="app_name">GTASA Savegame Extractor</string>
     <string name="action_settings">Settings</string>
     <string name="connect">Connect</string>
+    <string name="upload">Upload</string>
+    <string name="okay">Okay</string>
+    <string name="upload_success_title">Upload Successful</string>
+    <string name="upload_success_message">Upload finished successful!</string>
+    <string name="upload_error_title">Upload Error</string>
 </resources>
