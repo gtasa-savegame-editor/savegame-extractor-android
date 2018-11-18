@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="io.lerk.gtasase.ServiceActivity">
+
+    <item
+        android:id="@+id/menu_main_setting"
+        android:icon="@drawable/ic_cloud_upload_white_24dp"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        android:title="@string/toogle_service_view_mode" />
+
+</menu>

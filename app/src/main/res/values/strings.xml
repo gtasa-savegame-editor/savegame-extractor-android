@@ -7,4 +7,9 @@
     <string name="upload_success_title">Upload Successful</string>
     <string name="upload_success_message">Upload finished successful!</string>
     <string name="upload_error_title">Upload Error</string>
+    <string name="toogle_service_view_mode">Toggle view mode</string>
+    <string name="download">Download</string>
+    <string name="download_success_title">Download Success</string>
+    <string name="download_success_message">Download completed successfully</string>
+    <string name="download_error_title">Error Downloading Savegame</string>
 </resources>

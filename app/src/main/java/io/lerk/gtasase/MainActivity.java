@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                             if (jmdns == null) {
                                 jmdns = JmDNS.create(getDeviceIpAddress(wifi));
                             }
-                            return jmdns.list("_gtasa-se._tcp", 10000);
+                            return jmdns.list("_gtasa-se._tcp", 6000);
                         } catch (IOException e) {
                             Log.e(TAG, "Unable to start mDNS listener!", e);
                         } catch (ClassCastException e) {
