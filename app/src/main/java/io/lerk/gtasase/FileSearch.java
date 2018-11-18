@@ -41,7 +41,8 @@ public class FileSearch {
                     if (temp.isDirectory()) {
                         search(temp);
                     } else {
-                        if (temp.getAbsolutePath().toLowerCase().contains("gta") && temp.getAbsolutePath().toLowerCase().contains("com.rockstar")) {
+                        if (temp.getAbsolutePath().toLowerCase().contains("gtasa") && // make sure it's a savegame
+                                temp.getAbsolutePath().toLowerCase().contains("com.rockstar")) { // make sure it's in the app folder (package id is localized)
                             if (temp.getName().endsWith(".b")) {
                                 result.add(temp.getAbsoluteFile().toString());
                             }

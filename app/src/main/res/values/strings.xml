@@ -23,4 +23,12 @@
     <string name="downloading">Downloading…</string>
     <string name="downloading_message">Downloading savegame…</string>
     <string name="fetching_message">Fetching available savegames…</string>
+    <string name="action_tutorial">Show Tutorial</string>
+    <string name="permission_hook_try_again">Storage permissions are required for this. Please confirm the permission and try again.</string>
+    <string name="next">Next</string>
+    <string name="tutorial_title">Tutorial</string>
+    <string name="tutorial_message_1">On the first page you can find a list of all available servers. The ActionButton can be used to rescan for available servers. You need a compatible version of the gtasa-savegame-editor with a running server in the same network as the Android device for it to appear.</string>
+    <string name="cancel">Cancel</string>
+    <string name="tutorial_message_2">After clicking \'connect\', the locally detected savegames are shown. The view between local files and files available on the server can be switched using the menu.</string>
+    <string name="tutorial_message_3">Downloads happen using the Android download manager. For now it\'s necessary to use a file manager to copy the files into the right folder after modifying it.</string>
 </resources>

@@ -3,6 +3,7 @@ package io.lerk.gtasase;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -64,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             public View getView(int position, View convertView, ViewGroup parent) {
                 ServiceInfo serviceInfo = getItem(position);
                 if (serviceInfo != null) {
-                    if(convertView != null) {
+                    if (convertView != null) {
                         return initView(convertView, serviceInfo);
                     } else {
                         return initView(LayoutInflater.from(MainActivity.this).inflate(R.layout.layout_service, parent, false), serviceInfo);
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                         if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                             ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
                         }
+                        Toast.makeText(MainActivity.this, R.string.permission_hook_try_again, LENGTH_LONG).show();
                     } else {
                         Intent intent = new Intent(getApplicationContext(), ServiceActivity.class);
                         ArrayList<String> strings = new ArrayList<>(serviceInfo.getInet4Addresses().length);
@@ -219,7 +222,21 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_tutorial) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.tutorial_title)
+                    .setMessage(R.string.tutorial_message_1)
+                    .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
+                    .setPositiveButton(R.string.next, (dialog, which) ->
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setNegativeButton(R.string.cancel, (d, w) -> d.cancel())
+                                    .setTitle(R.string.tutorial_title)
+                                    .setMessage(R.string.tutorial_message_2)
+                                    .setPositiveButton(R.string.next, (dial0g, wh1ch) ->
+                                            new AlertDialog.Builder(MainActivity.this)
+                                                    .setTitle(R.string.tutorial_title)
+                                                    .setMessage(R.string.tutorial_message_3)
+                                                    .setNeutralButton(R.string.okay, (d, w) -> d.dismiss()).show()).show()).show();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -234,8 +251,8 @@ public class MainActivity extends AppCompatActivity {
             // figure out our wifi address, otherwise bail
             WifiInfo wifiinfo = wifi.getConnectionInfo();
             int intaddr = wifiinfo.getIpAddress();
-            byte[] byteaddr = new byte[] { (byte) (intaddr & 0xff), (byte) (intaddr >> 8 & 0xff),
-                    (byte) (intaddr >> 16 & 0xff), (byte) (intaddr >> 24 & 0xff) };
+            byte[] byteaddr = new byte[]{(byte) (intaddr & 0xff), (byte) (intaddr >> 8 & 0xff),
+                    (byte) (intaddr >> 16 & 0xff), (byte) (intaddr >> 24 & 0xff)};
             result = InetAddress.getByAddress(byteaddr);
         } catch (UnknownHostException ex) {
             Log.w(TAG, "Error resolving local address!", ex);
