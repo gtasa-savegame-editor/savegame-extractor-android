@@ -41,7 +41,7 @@ public class FileSearch {
                     if (temp.isDirectory()) {
                         search(temp);
                     } else {
-                        if (temp.getAbsolutePath().toLowerCase().contains("gta")) {
+                        if (temp.getAbsolutePath().toLowerCase().contains("gta") && temp.getAbsolutePath().toLowerCase().contains("com.rockstar")) {
                             if (temp.getName().endsWith(".b")) {
                                 result.add(temp.getAbsoluteFile().toString());
                             }
