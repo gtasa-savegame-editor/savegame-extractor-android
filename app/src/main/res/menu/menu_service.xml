@@ -8,7 +8,7 @@
         android:id="@+id/menu_main_setting"
         android:icon="@drawable/ic_cloud_upload_white_24dp"
         android:orderInCategory="100"
-        app:showAsAction="never"
+        app:showAsAction="always"
         android:title="@string/toogle_service_view_mode" />
 
 </menu>

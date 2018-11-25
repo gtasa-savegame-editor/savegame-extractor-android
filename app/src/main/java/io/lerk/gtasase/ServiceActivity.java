@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -35,6 +36,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class ServiceActivity extends AppCompatActivity {
@@ -45,12 +47,11 @@ public class ServiceActivity extends AppCompatActivity {
     public static final String SERVICE_PORT_KEY = "servicePort";
     private static final String TAG = ServiceActivity.class.getCanonicalName();
 
-    private String[] serviceAdresses;
-    private int servicePort;
-
     private boolean localView = true;
     private ListView savegameListView;
     private ArrayAdapter<File> localFileAdapter;
+    private String serviceAddress;
+    private Menu menu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,14 +61,19 @@ public class ServiceActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
         ArrayList<String> arrayList = intent.getStringArrayListExtra(SERVICE_ADDRESS_KEY);
-        serviceAdresses = new String[arrayList.size()];
+        String[] serviceAdresses = new String[arrayList.size()];
         for (int i = 0; i < arrayList.size(); i++) {
             serviceAdresses[i] = arrayList.get(i);
         }
 
-        servicePort = intent.getIntExtra(SERVICE_PORT_KEY, 0);
+        if (serviceAdresses.length <= 0) {
+            throw new IllegalStateException("No addresses for service");
+        }
+        int servicePort = intent.getIntExtra(SERVICE_PORT_KEY, 0);
+        serviceAddress = serviceAdresses[0] + ":" + servicePort;
 
         savegameListView = findViewById(R.id.savegameListView);
+        Log.i(TAG, "Using address: '" + serviceAddress + "'");
 
         localFileAdapter = new ArrayAdapter<File>(this, R.layout.layout_savegame) {
             @Override
@@ -102,16 +108,11 @@ public class ServiceActivity extends AppCompatActivity {
                     }
 
                     @Override
+                    @SuppressLint("WrongThread") // wat
                     protected Throwable doInBackground(Void... voids) {
                         try {
-                            String requestUrl = "http://";
-                            for (int i = 0; i < serviceAdresses.length; i++) {
-                                if (serviceAdresses[i] != null && !serviceAdresses[i].isEmpty()) {
-                                    requestUrl += serviceAdresses[i];
-                                    Log.d(TAG, "Using address: '" + serviceAdresses[i]);
-                                    break;
-                                }
-                            }
+                            String requestUrl = "http://" + Arrays.stream(serviceAdresses).filter(a -> a != null && !a.isEmpty()).findFirst().orElseThrow(IllegalStateException::new);
+                            Log.d(TAG, "Using address: '" + requestUrl);
                             MultipartUtility multipart = new MultipartUtility(requestUrl + ":" + servicePort + "/add", "UTF-8");
 
                             multipart.addHeaderField("User-Agent", "GTASA Savegame Extractor (Android)");
@@ -119,10 +120,10 @@ public class ServiceActivity extends AppCompatActivity {
 
                             multipart.addFilePart("savegame", item);
 
-                            StringBuilder resposeBuilder = new StringBuilder();
-                            multipart.finish().forEach(resposeBuilder::append);
-                            Log.d(TAG, "Server Response:\n" + resposeBuilder.toString());
-                        } catch (IOException ex) {
+                            StringBuilder responseBuilder = new StringBuilder();
+                            multipart.finish().forEach(responseBuilder::append);
+                            Log.d(TAG, "Server Response:\n" + responseBuilder.toString());
+                        } catch (Throwable ex) {
                             Log.e(TAG, "Unable to upload savegame!", ex);
                             return ex;
                         }
@@ -152,16 +153,24 @@ public class ServiceActivity extends AppCompatActivity {
         updateTitlebarText();
 
         ArrayList<File> search = FileSearch.search();
+        //noinspection unchecked
         search.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
+        //noinspection unchecked
         ((ArrayAdapter<File>) savegameListView.getAdapter()).notifyDataSetChanged();
     }
 
     private void updateTitlebarText() {
-        String titleText = serviceAdresses[0] + ":" + servicePort + ((localView) ?
+        String titleText = serviceAddress + ((localView) ?
                 getString(R.string.view_mode_suffix_local) : getString(R.string.view_mode_suffix_remote));
         ActionBar toolbar = getSupportActionBar();
         if (toolbar != null) {
             toolbar.setTitle(titleText);
+        }
+        if (menu != null) {
+            MenuItem item = menu.findItem(R.id.menu_main_setting);
+            if (item != null) {
+                item.setIcon(((localView) ? R.drawable.ic_cloud_upload_white_24dp : R.drawable.ic_cloud_download_white_24dp));
+            }
         }
     }
 
@@ -205,7 +214,7 @@ public class ServiceActivity extends AppCompatActivity {
                         @Override
                         protected Throwable doInBackground(Void... voids) {
                             DownloadManager downloadmanager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                            Uri uri = Uri.parse("http://" + serviceAdresses[0] + ":" + servicePort + "/get/" + item.getName());
+                            Uri uri = Uri.parse("http://" + serviceAddress + "/get/" + item.getName());
                             DownloadManager.Request request = new DownloadManager.Request(uri);
                             request.setTitle(item.getName());
                             request.setDescription(getString(R.string.downloading_message));
@@ -238,7 +247,7 @@ public class ServiceActivity extends AppCompatActivity {
                 @Override
                 protected ArrayList<File> doInBackground(Void... voids) {
                     try {
-                        URL url = new URL("http://" + serviceAdresses[0] + ":" + servicePort + "/list");
+                        URL url = new URL("http://" + serviceAddress + "/list");
                         HttpURLConnection con = (HttpURLConnection) url.openConnection();
                         con.setRequestMethod("GET");
                         Log.d(TAG, "Fetch available savegames: " + con.getResponseCode());
@@ -252,17 +261,23 @@ public class ServiceActivity extends AppCompatActivity {
                         in.close();
                         con.disconnect();
                         ArrayList<File> res = new ArrayList<>();
-                        ArrayList<HashMap<String, String>> results = new ObjectMapper().readValue(content.toString(), ArrayList.class);
+                        @SuppressWarnings("unchecked") ArrayList<HashMap<String, String>> results = new ObjectMapper().readValue(content.toString(), ArrayList.class);
                         results.forEach(m -> res.add(new File(m.get("name"))));
                         return res;
                     } catch (ProtocolException e) {
-                        ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
+                            ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        }
                         Log.e(TAG, "Unable to fetch available savegames!", e);
                     } catch (MalformedURLException e) {
-                        ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
+                            ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        }
                         Log.e(TAG, "Unable to fetch available savegames!", e);
                     } catch (IOException e) {
-                        ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
+                            ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
+                        }
                         Log.e(TAG, "Unable to fetch available savegames!", e);
                     }
                     return null;
@@ -273,7 +288,9 @@ public class ServiceActivity extends AppCompatActivity {
                     snackbar.dismiss();
                     if (files != null) {
                         if (files.size() > 0) {
-                            Toast.makeText(ServiceActivity.this, R.string.fetching_success_message, Toast.LENGTH_LONG).show();
+                            if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
+                                Toast.makeText(ServiceActivity.this, R.string.fetching_success_message, Toast.LENGTH_LONG).show();
+                            }
                             @SuppressWarnings("unchecked") ArrayAdapter<File> adapter = (ArrayAdapter<File>) savegameListView.getAdapter();
                             files.forEach(adapter::add);
                             adapter.notifyDataSetChanged();
@@ -300,6 +317,7 @@ public class ServiceActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_service, menu);
+        this.menu = menu;
         return true;
     }
 }

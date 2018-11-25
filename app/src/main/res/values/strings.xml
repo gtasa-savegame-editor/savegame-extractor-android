@@ -31,4 +31,11 @@
     <string name="cancel">Cancel</string>
     <string name="tutorial_message_2">After clicking \'connect\', the locally detected savegames are shown. The view between local files and files available on the server can be switched using the menu.</string>
     <string name="tutorial_message_3">Downloads happen using the Android download manager. For now it\'s necessary to use a file manager to copy the files into the right folder after modifying it.</string>
+    <string name="address_error_message">Unable to get address.</string>
+    <string name="mdns_error_title">Error!</string>
+    <string name="mdns_error_message">Unable to create mDNS listener!</string>
+    <string name="resolution_added">Service found!</string>
+    <string name="resolution_removed">Service removed.</string>
+    <string name="resolution_resolved">Resloved service successfully!</string>
+    <string name="setting_toasts_label">Info Toasts</string>
 </resources>
