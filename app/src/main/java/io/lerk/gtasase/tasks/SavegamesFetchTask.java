@@ -44,8 +44,9 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
         try {
             URL url = new URL("http://" + activityCallback.getServiceAddress() + "/list");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setConnectTimeout(5000); //TODO: add setting for this
-            con.setReadTimeout(5000); //TODO: add setting for this
+            Integer timeout = activityCallback.getRequestTimeout();
+            con.setConnectTimeout(timeout);
+            con.setReadTimeout(timeout);
             con.setRequestMethod("GET");
             Log.d(TAG, "Fetch available savegames: " + con.getResponseCode());
             BufferedReader in = new BufferedReader(
@@ -149,6 +150,13 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
             public String getGenericSavegameName() {
                 return activity.getString(R.string.default_savegame_name);
             }
+
+            @Override
+            public Integer getRequestTimeout() {
+                return PreferenceManager.getDefaultSharedPreferences(
+                        activity.getApplicationContext()).getInt("fetchTimeout",
+                        Integer.parseInt(activity.getString(R.string.setting_fetch_timeout_default)));
+            }
         };
     }
 
@@ -168,6 +176,8 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
         ArrayAdapter<File> getListAdapter();
 
         String getGenericSavegameName();
+
+        Integer getRequestTimeout();
     }
 
 }

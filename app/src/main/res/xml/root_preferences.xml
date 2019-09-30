@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/settings_application">
+
+        <SwitchPreferenceCompat
+            app:key="infoToasts"
+            app:summary="@string/setting_toasts_desc"
+            app:summaryOff="@string/setting_toasts_desc_off"
+            app:summaryOn="@string/setting_toasts_desc_on"
+            app:title="@string/setting_toasts_label" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_network">
+        <SeekBarPreference
+            android:max="10000"
+            app:showSeekBarValue="true"
+            app:defaultValue="@string/setting_fetch_timeout_default"
+            app:key="fetchTimeout"
+            app:min="0"
+            app:summary="@string/setting_fetch_timeout_desc"
+            app:title="@string/setting_fetch_timeout" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

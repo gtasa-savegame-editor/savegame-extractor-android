@@ -40,4 +40,13 @@
     <string name="setting_toasts_label">Info Toasts</string>
     <string name="reload">Reload</string>
     <string name="default_savegame_name">Error fetching name!</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="settings_application">Application</string>
+    <string name="setting_toasts_desc">Decides whether to show toasts on certain events.</string>
+    <string name="setting_toasts_desc_on">Toasts will be shown on certain events.</string>
+    <string name="setting_toasts_desc_off">No Toasts will be shown.</string>
+    <string name="settings_network">Network</string>
+    <string name="setting_fetch_timeout_default">5000</string>
+    <string name="setting_fetch_timeout_desc">Sets the request timeout in milliseconds, zero is indefinite.</string>
+    <string name="setting_fetch_timeout">Fetch Timeout</string>
 </resources>

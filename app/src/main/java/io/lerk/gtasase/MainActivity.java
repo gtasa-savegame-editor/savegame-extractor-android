@@ -26,8 +26,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

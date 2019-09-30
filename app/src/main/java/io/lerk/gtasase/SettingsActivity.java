@@ -1,26 +1,32 @@
 package io.lerk.gtasase;
 
-import android.preference.PreferenceManager;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.Switch;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
 
 public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        setContentView(R.layout.settings_activity);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.settings, new SettingsFragment())
+                .commit();
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
+    }
 
-        boolean infoToastsEnabled = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext())
-                .getBoolean("infoToasts", false);
-
-        Switch infoToastSwitch = findViewById(R.id.infoToastSwitch);
-        infoToastSwitch.setChecked(infoToastsEnabled);
-        infoToastSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit()
-                        .putBoolean("infoToasts", isChecked).apply());
-
+    public static class SettingsFragment extends PreferenceFragmentCompat {
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            setPreferencesFromResource(R.xml.root_preferences, rootKey);
+        }
     }
 }

@@ -59,7 +59,6 @@ public class ServiceActivity extends AppCompatActivity {
     private ArrayAdapter<File> localFileAdapter;
     private String serviceAddress;
     private Menu menu;
-    private SavegamesFetchTask savegamesFetchTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -244,7 +243,7 @@ public class ServiceActivity extends AppCompatActivity {
                 }
             });
 
-            savegamesFetchTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new SavegamesFetchTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
             savegameListView.setAdapter(localFileAdapter);
         }
