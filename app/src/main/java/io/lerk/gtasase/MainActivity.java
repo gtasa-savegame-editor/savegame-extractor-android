@@ -1,21 +1,12 @@
 package io.lerk.gtasase;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-
-import androidx.core.app.ActivityCompat;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,16 +19,22 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
-import javax.jmdns.ServiceListener;
 import javax.jmdns.impl.ServiceInfoImpl;
 
 import io.lerk.gtasase.tasks.MDNSTask;
@@ -58,19 +55,21 @@ public class MainActivity extends AppCompatActivity {
     };
 
     @Override
-    @SuppressLint("StaticFieldLeak")
-    // The AsyncTask needs to (eg. will) complete before the activity.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.servicesRefreshLayout);
+        swipeRefreshLayout.setEnabled(false);
+        swipeRefreshLayout.setColorSchemeResources(R.color.primaryDarkColor, R.color.primaryColor, R.color.primaryLightColor);
+
         ListView serviceList = findViewById(R.id.serviceList);
-        //noinspection NullableProblems can be circumvented with nullchecks
         ArrayAdapter<ServiceInfo> adapter = new ArrayAdapter<ServiceInfo>(this, R.layout.layout_service) {
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 ServiceInfo serviceInfo = getItem(position);
                 if (serviceInfo != null) {
                     if (convertView != null) {

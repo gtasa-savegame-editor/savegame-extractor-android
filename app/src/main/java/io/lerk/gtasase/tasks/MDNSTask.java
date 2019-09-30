@@ -1,8 +1,6 @@
 package io.lerk.gtasase.tasks;
 
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -10,8 +8,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -45,6 +43,14 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
             @Override
             public boolean appRunning() {
                 return activity.isAppRunning();
+            }
+
+            @Override
+            public void setLoading(boolean loading) {
+                activity.runOnUiThread(() -> {
+                    SwipeRefreshLayout swipeRefreshLayout = activity.findViewById(R.id.servicesRefreshLayout);
+                    swipeRefreshLayout.setRefreshing(loading);
+                });
             }
 
             @Override
@@ -93,7 +99,6 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
         try {
             JmDNS jmdns = JmDNS.create(ip, "gtaSaSavegameExtractor");
             jmdns.addServiceListener("_gtasa-se._tcp.local.", new ServiceListener() {
-
                 @Override
                 public void serviceAdded(ServiceEvent event) {
                     callback.onMDNSAdded(event);
@@ -116,12 +121,14 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
                 } catch (InterruptedException e) {
                     Log.w(TAG, "mDNS Thread interrupted!");
                 }
+                callback.setLoading(true);
                 ServiceInfo[] list = jmdns.list("_gtasa-se._tcp.local.", 100);
                 Log.i(TAG, "mDNS Thread running. " + list.length + " services found.");
                 for (int i = 0; i < list.length; i++) {
                     ServiceInfo serviceInfo = list[i];
                     Log.d(TAG, "Services[" + i + "] " + ((serviceInfo.hasData()) ? "❗️" : "❓") + ", ip: '" + ((serviceInfo.getHostAddresses() != null && serviceInfo.getHostAddresses().length > 0) ? serviceInfo.getHostAddresses()[0] : "NA") + "', port: " + serviceInfo.getPort());
                 }
+                callback.setLoading(false);
             }
         } catch (IOException e) {
             Log.e(TAG, "Unable to create mDNS!", e);
@@ -130,12 +137,17 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
         return null;
     }
 
-    public interface ActivityCallback {
+    private interface ActivityCallback {
         boolean appRunning();
 
+        void setLoading(boolean loading);
+
         void onMDNSAdded(ServiceEvent event);
+
         void onMDNSRemoved(ServiceEvent event);
+
         void onMDNSResolved(ServiceEvent event);
+
         void onMDNSError(IOException e);
     }
 }
