@@ -39,4 +39,5 @@
     <string name="service_resolved">Resolved service successfully!</string>
     <string name="setting_toasts_label">Info Toasts</string>
     <string name="reload">Reload</string>
+    <string name="default_savegame_name">Error fetching name!</string>
 </resources>

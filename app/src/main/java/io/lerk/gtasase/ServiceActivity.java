@@ -10,9 +10,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,6 +35,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -38,6 +43,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import io.lerk.gtasase.tasks.SavegamesFetchTask;
 
 public class ServiceActivity extends AppCompatActivity {
 
@@ -52,11 +59,16 @@ public class ServiceActivity extends AppCompatActivity {
     private ArrayAdapter<File> localFileAdapter;
     private String serviceAddress;
     private Menu menu;
+    private SavegamesFetchTask savegamesFetchTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service);
+
+        SwipeRefreshLayout refreshLayout = findViewById(R.id.savegameRefreshLayout);
+        refreshLayout.setEnabled(false);
+        refreshLayout.setColorSchemeResources(R.color.primaryLightColor, R.color.primaryColor, R.color.primaryDarkColor);
 
         Intent intent = getIntent();
 
@@ -175,7 +187,6 @@ public class ServiceActivity extends AppCompatActivity {
     }
 
     @Override
-    @SuppressLint("StaticFieldLeak") // the AsyncTask should (eg. will) finish before the activity
     public boolean onOptionsItemSelected(MenuItem item) {
         if (localView) {
             savegameListView.setAdapter(new ArrayAdapter<File>(this, R.layout.layout_savegame) {
@@ -193,7 +204,6 @@ public class ServiceActivity extends AppCompatActivity {
                 }
 
                 @SuppressLint("StaticFieldLeak")
-                // The asyncTask has to (eg. will) finish before the activity does
                 private View initView(View view, File item) {
                     TextView savegameName = view.findViewById(R.id.savegame_name);
                     Button downloadButton = view.findViewById(R.id.upload_button);
@@ -233,79 +243,8 @@ public class ServiceActivity extends AppCompatActivity {
                     return view;
                 }
             });
-            new AsyncTask<Void, Void, ArrayList<File>>() {
 
-                private Snackbar snackbar;
-
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                    snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), R.string.fetching_message, Snackbar.LENGTH_INDEFINITE);
-                    snackbar.show();
-                }
-
-                @Override
-                protected ArrayList<File> doInBackground(Void... voids) {
-                    try {
-                        URL url = new URL("http://" + serviceAddress + "/list");
-                        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                        con.setRequestMethod("GET");
-                        Log.d(TAG, "Fetch available savegames: " + con.getResponseCode());
-                        BufferedReader in = new BufferedReader(
-                                new InputStreamReader(con.getInputStream()));
-                        String inputLine;
-                        StringBuilder content = new StringBuilder();
-                        while ((inputLine = in.readLine()) != null) {
-                            content.append(inputLine);
-                        }
-                        in.close();
-                        con.disconnect();
-                        ArrayList<File> res = new ArrayList<>();
-                        @SuppressWarnings("unchecked") ArrayList<HashMap<String, String>> results = new ObjectMapper().readValue(content.toString(), ArrayList.class);
-                        results.forEach(m -> res.add(new File(m.get("name"))));
-                        return res;
-                    } catch (ProtocolException e) {
-                        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
-                            ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
-                        }
-                        Log.e(TAG, "Unable to fetch available savegames!", e);
-                    } catch (MalformedURLException e) {
-                        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
-                            ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
-                        }
-                        Log.e(TAG, "Unable to fetch available savegames!", e);
-                    } catch (IOException e) {
-                        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
-                            ServiceActivity.this.runOnUiThread(() -> Toast.makeText(ServiceActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
-                        }
-                        Log.e(TAG, "Unable to fetch available savegames!", e);
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(ArrayList<File> files) {
-                    snackbar.dismiss();
-                    if (files != null) {
-                        if (files.size() > 0) {
-                            if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
-                                Toast.makeText(ServiceActivity.this, R.string.fetching_success_message, Toast.LENGTH_LONG).show();
-                            }
-                            @SuppressWarnings("unchecked") ArrayAdapter<File> adapter = (ArrayAdapter<File>) savegameListView.getAdapter();
-                            files.forEach(adapter::add);
-                            adapter.notifyDataSetChanged();
-                        } else {
-                            new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                    .setTitle(R.string.fetching_error_title)
-                                    .setMessage(R.string.fetching_error_message_no_files).show();
-                        }
-                    } else {
-                        new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                .setTitle(R.string.fetching_error_title)
-                                .setMessage(R.string.fetching_error_message_error).show();
-                    }
-                }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            savegamesFetchTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
             savegameListView.setAdapter(localFileAdapter);
         }
@@ -319,5 +258,13 @@ public class ServiceActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_service, menu);
         this.menu = menu;
         return true;
+    }
+
+    public String getServiceAddress() {
+        return serviceAddress;
+    }
+
+    public ArrayAdapter<File> getLocalFileAdapter() {
+        return localFileAdapter;
     }
 }
