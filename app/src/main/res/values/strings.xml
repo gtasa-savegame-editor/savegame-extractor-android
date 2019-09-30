@@ -34,8 +34,8 @@
     <string name="address_error_message">Unable to get address.</string>
     <string name="mdns_error_title">Error!</string>
     <string name="mdns_error_message">Unable to create mDNS listener!</string>
-    <string name="resolution_added">Service found!</string>
-    <string name="resolution_removed">Service removed.</string>
-    <string name="resolution_resolved">Resolved service successfully!</string>
+    <string name="service_found">Service found!</string>
+    <string name="service_removed">Service removed.</string>
+    <string name="service_resolved">Resolved service successfully!</string>
     <string name="setting_toasts_label">Info Toasts</string>
 </resources>

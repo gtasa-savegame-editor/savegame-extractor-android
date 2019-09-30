@@ -10,10 +10,12 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,6 +40,8 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.impl.ServiceInfoImpl;
 
+import io.lerk.gtasase.tasks.MDNSTask;
+
 import static android.widget.Toast.LENGTH_LONG;
 
 public class MainActivity extends AppCompatActivity {
@@ -45,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getCanonicalName();
 
     private WifiManager.MulticastLock multicastLock;
-    private JmDNS jmdns;
     private boolean appRunning = true;
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -154,13 +157,16 @@ public class MainActivity extends AppCompatActivity {
         serviceList.setAdapter(adapter);
 
         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        multicastLock = wifi.createMulticastLock("gtaSaSeExtractorMulticastLock");
-        multicastLock.setReferenceCounted(true);
-        multicastLock.acquire();
+        if (wifi != null) {
+            multicastLock = wifi.createMulticastLock("gtaSaSeExtractorMulticastLock");
+            multicastLock.setReferenceCounted(true);
+            multicastLock.acquire();
 
-        MDNSTask mdnsTask = new MDNSTask(wifi, serviceList);
-        mdnsTask.executeOnExecutor(MDNSTask.THREAD_POOL_EXECUTOR);
-
+            MDNSTask mdnsTask = new MDNSTask(this, wifi, serviceList);
+            mdnsTask.executeOnExecutor(MDNSTask.THREAD_POOL_EXECUTOR);
+        } else {
+            onMDNSError(new IOException("WifiManager is null!"));
+        }
     }
 
     @Override
@@ -204,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private InetAddress getDeviceIpAddress(WifiManager wifi) {
+    public InetAddress getDeviceIpAddress(WifiManager wifi) {
         InetAddress result = null;
         try {
             // default to Android localhost
@@ -223,85 +229,18 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private class MDNSTask extends AsyncTask<Void, Void, Void> {
+    public boolean isAppRunning() {
+        return appRunning;
+    }
 
-        private final WifiManager wifi;
-        private final ListView serviceList;
-
-        MDNSTask(WifiManager wifi, ListView serviceList) {
-            this.wifi = wifi;
-            this.serviceList = serviceList;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                jmdns = JmDNS.create(getDeviceIpAddress(wifi), "gtaSaSavegameExtractor");
-                jmdns.addServiceListener("_gtasa-se._tcp.local.", new ServiceListener() {
-                    @SuppressWarnings("unchecked")
-                    private final ArrayAdapter<ServiceInfo> adapter = (ArrayAdapter<ServiceInfo>) serviceList.getAdapter();
-
-                    @Override
-                    public void serviceAdded(ServiceEvent event) {
-                        MainActivity.this.runOnUiThread(() -> {
-                            if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
-                                Toast.makeText(getApplicationContext(), R.string.resolution_added, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        Log.i(TAG, "Found: '" + event.getType() + "', name: '" + event.getName() + "', port: " + event.getInfo().getPort());
-                    }
-
-
-                    @Override
-                    public void serviceRemoved(ServiceEvent event) {
-                        MainActivity.this.runOnUiThread(() -> {
-                            if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
-                                Toast.makeText(getApplicationContext(), R.string.resolution_removed, Toast.LENGTH_SHORT).show();
-                            }
-                            for (int i = 0; i < serviceList.getAdapter().getCount(); i++) {
-                                ServiceInfo item = adapter.getItem(i);
-                                if (item != null && (item.getName().equals(event.getName()) && item.getPort() == event.getInfo().getPort())) {
-                                    adapter.remove(item);
-                                }
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void serviceResolved(ServiceEvent event) {
-                        MainActivity.this.runOnUiThread(() -> {
-                            if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("infoToasts", false)) {
-                                Toast.makeText(getApplicationContext(), R.string.resolution_resolved, Toast.LENGTH_SHORT).show();
-                            }
-                            adapter.add(event.getInfo());
-                        });
-                    }
-                });
-                while (appRunning) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Log.w(TAG, "mDNS Thread interrupted!");
-                    }
-                    ServiceInfo[] list = jmdns.list("_gtasa-se._tcp.local.", 100);
-                    Log.i(TAG, "mDNS Thread running. " + list.length + " services found.");
-                    for (int i = 0; i < list.length; i++) {
-                        ServiceInfo serviceInfo = list[i];
-                        Log.d(TAG, "Services[" + i + "] " + ((serviceInfo.hasData()) ? "❗️" : "❓") + ", ip: '" + ((serviceInfo.getHostAddresses() != null && serviceInfo.getHostAddresses().length > 0) ? serviceInfo.getHostAddresses()[0] : "NA") + "', port: " + serviceInfo.getPort());
-                    }
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "Unable to create mDNS!", e);
-                MainActivity.this.runOnUiThread(() -> new AlertDialog.Builder(getApplicationContext())
-                        .setTitle(R.string.mdns_error_title)
-                        .setMessage(R.string.mdns_error_message)
-                        .setNeutralButton(R.string.okay, (dialog, which) -> {
-                            dialog.dismiss();
-                            MainActivity.this.finish();
-                        }).show());
-            }
-            return null;
-        }
+    public void onMDNSError(IOException e) {
+        new AlertDialog.Builder(getApplicationContext())
+                .setTitle(R.string.mdns_error_title)
+                .setMessage(R.string.mdns_error_message)
+                .setNeutralButton(R.string.okay, (dialog, which) -> {
+                    dialog.dismiss();
+                    finish();
+                }).show();
+        Log.e(TAG, "mDNS Error occurred!", e);
     }
 }
