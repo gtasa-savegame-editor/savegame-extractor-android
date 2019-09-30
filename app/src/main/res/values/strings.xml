@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GTASA Savegame Extractor</string>
+    <string name="app_name">GTA:SA Savegame Extractor</string>
     <string name="action_settings">Settings</string>
     <string name="connect">Connect</string>
     <string name="upload">Upload</string>
@@ -11,8 +11,8 @@
     <string name="download">Download</string>
     <string name="download_success_title">Download Success</string>
     <string name="download_success_message">Download completed successfully</string>
-    <string name="download_error_title">Error Downloading Savegame</string>
-    <string name="fetching_error_title">Error Fetching Savegames</string>
+    <string name="download_error_title">Error Downloading savegame</string>
+    <string name="fetching_error_title">Error Fetching savegames</string>
     <string name="fetching_success_message">Successfully fetched available savegames.</string>
     <string name="fetching_error_message_no_files">No savegames available.</string>
     <string name="fetching_error_message_error">Connection Error!</string>
@@ -36,6 +36,6 @@
     <string name="mdns_error_message">Unable to create mDNS listener!</string>
     <string name="resolution_added">Service found!</string>
     <string name="resolution_removed">Service removed.</string>
-    <string name="resolution_resolved">Resloved service successfully!</string>
+    <string name="resolution_resolved">Resolved service successfully!</string>
     <string name="setting_toasts_label">Info Toasts</string>
 </resources>

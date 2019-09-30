@@ -18,7 +18,7 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="dividerBase">
-        <item name="android:background">?android:attr/listDivider</item> //you can give your color here. that will change all divider color in your app.
+        <item name="android:background">?android:attr/listDivider</item>
     </style>
 
     <style name="dividerHorizontal" parent="dividerBase">
