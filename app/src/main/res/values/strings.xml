@@ -36,7 +36,7 @@
     <string name="mdns_error_message">Unable to create mDNS listener!</string>
     <string name="service_found">Service found!</string>
     <string name="service_removed">Service removed.</string>
-    <string name="service_resolved">Resolved service successfully!</string>
+    <string name="service_resolved">Service resolved successfully!</string>
     <string name="setting_toasts_label">Info Toasts</string>
     <string name="reload">Reload</string>
     <string name="default_savegame_name">Error fetching name!</string>
@@ -49,4 +49,6 @@
     <string name="setting_fetch_timeout_default">5000</string>
     <string name="setting_fetch_timeout_desc">Sets the request timeout in milliseconds, zero is indefinite.</string>
     <string name="setting_fetch_timeout">Fetch Timeout</string>
+    <string name="permissions_needed">Permissions Required</string>
+    <string name="permissions_needed_message">This App needs permission to read and write to your external storage to work properly. You can grant those permissions in the following dialog.</string>
 </resources>

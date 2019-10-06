@@ -59,6 +59,7 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
                     if (PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext()).getBoolean("infoToasts", false)) {
                         Toast.makeText(activity.getApplicationContext(), R.string.service_found, Toast.LENGTH_SHORT).show();
                     }
+                    serviceListAdapter.add(event.getInfo());
                 });
             }
 
@@ -83,7 +84,13 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
                     if (PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext()).getBoolean("infoToasts", false)) {
                         Toast.makeText(activity.getApplicationContext(), R.string.service_resolved, Toast.LENGTH_SHORT).show();
                     }
-                    serviceListAdapter.add(event.getInfo());
+                    for (int i = 0; i < serviceListAdapter.getCount(); i++) {
+                        ServiceInfo item = serviceListAdapter.getItem(i);
+                        if (item != null && (item.getName().equals(event.getName()) || item.getPort() == event.getInfo().getPort())) {
+                            serviceListAdapter.remove(item);
+                            serviceListAdapter.add(event.getInfo());
+                        }
+                    }
                 });
             }
 

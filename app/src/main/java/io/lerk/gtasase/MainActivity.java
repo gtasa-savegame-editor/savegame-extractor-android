@@ -35,6 +35,7 @@ import java.util.Arrays;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.ServiceInfoImpl;
 
+import io.lerk.gtasase.adapters.ServiceInfoAdapter;
 import io.lerk.gtasase.tasks.MDNSTask;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -64,92 +65,7 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setColorSchemeResources(R.color.primaryDarkColor, R.color.primaryColor, R.color.primaryLightColor);
 
         ListView serviceList = findViewById(R.id.serviceList);
-        ArrayAdapter<ServiceInfo> adapter = new ArrayAdapter<ServiceInfo>(this, R.layout.layout_service) {
-            @NonNull
-            @Override
-            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-                ServiceInfo serviceInfo = getItem(position);
-                if (serviceInfo != null) {
-                    if (convertView != null) {
-                        return initView(convertView, serviceInfo);
-                    } else {
-                        return initView(LayoutInflater.from(MainActivity.this).inflate(R.layout.layout_service, parent, false), serviceInfo);
-                    }
-                } else {
-                    return convertView;
-                }
-            }
-
-            private View initView(View view, ServiceInfo serviceInfo) {
-                String serviceAddressString;
-                String hostname = serviceInfo.getPropertyString("hostname");
-                String propertyIp = serviceInfo.getPropertyString("ip");
-                TextView serviceName = view.findViewById(R.id.service_name);
-                TextView serviceAddress = view.findViewById(R.id.service_address);
-                Button connectButton = view.findViewById(R.id.connect_button);
-
-                try {
-                    serviceAddressString = getFullServiceAddressString(serviceInfo, propertyIp);
-                } catch (Exception e) {
-                    Log.e(TAG, "Unable to determine address for service.", e);
-                    serviceAddressString = getString(R.string.address_error_message);
-                    connectButton.setEnabled(false);
-                    serviceAddress.setTextColor(getColor(R.color.errorTextColor));
-                }
-                String serviceNameString = serviceInfo.getName() + ((hostname == null || hostname.isEmpty()) ? "" : " (" + hostname + ")");
-
-                serviceName.setText(serviceNameString);
-                serviceAddress.setText(serviceAddressString);
-                final String finalServiceAddressString = serviceAddressString;
-                connectButton.setOnClickListener(v -> {
-                    final boolean permissionGranted = ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-
-                    if (!permissionGranted) {
-                        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                            ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-                        }
-                        Toast.makeText(MainActivity.this, R.string.permission_hook_try_again, LENGTH_LONG).show();
-                    } else {
-                        Intent intent = new Intent(getApplicationContext(), ServiceActivity.class);
-                        ArrayList<String> strings = new ArrayList<>();
-                        Arrays.asList(serviceInfo.getInetAddresses()).forEach(s -> strings.add(s.toString().replaceAll("/", "")));
-                        if (strings.size() <= 0) {
-                            strings.add(finalServiceAddressString);
-                        }
-                        intent.putStringArrayListExtra(ServiceActivity.SERVICE_ADDRESS_KEY, strings);
-                        intent.putExtra(ServiceActivity.SERVICE_PORT_KEY, serviceInfo.getPort());
-                        startActivity(intent);
-                    }
-                });
-
-                return view;
-            }
-
-            private String getFullServiceAddressString(ServiceInfo serviceInfo, String propertyIp) throws Exception {
-                String portPropertyString = serviceInfo.getPropertyString("port");
-                String portServiceInfoString = String.valueOf(serviceInfo.getPort());
-                if (!portServiceInfoString.equals("") && !portServiceInfoString.equals("0")) {
-                    return getHostAddressString(serviceInfo, propertyIp) + ":" + portServiceInfoString;
-                } else if (portPropertyString != null && !portPropertyString.equals("0")) {
-                    return getHostAddressString(serviceInfo, propertyIp) + ":" + portPropertyString;
-                } else {
-                    throw new Exception("No port found for service.");
-                }
-            }
-
-            private String getHostAddressString(ServiceInfo serviceInfo, String propertyIp) {
-                if (serviceInfo.getInetAddresses().length > 0 &&
-                        !(serviceInfo.getInetAddresses()[0].toString().toLowerCase().startsWith("0.") ||
-                                serviceInfo.getInetAddresses()[0].toString().toLowerCase().contains("0:"))) {
-                    return serviceInfo.getInetAddresses()[0].toString().replaceAll("/", "");
-                } else if (propertyIp != null) {
-                    return propertyIp;
-                } else {
-                    return ((ServiceInfoImpl) serviceInfo).getDns().getLocalHost().getInetAddress().getHostAddress();
-                }
-            }
-        };
-
+        ServiceInfoAdapter adapter = new ServiceInfoAdapter(this, R.layout.layout_service);
         adapter.setNotifyOnChange(true); // !!!!
         serviceList.setAdapter(adapter);
 
@@ -163,6 +79,18 @@ public class MainActivity extends AppCompatActivity {
             mdnsTask.executeOnExecutor(MDNSTask.THREAD_POOL_EXECUTOR);
         } else {
             onMDNSError(new IOException("WifiManager is null!"));
+        }
+
+        final boolean permissionGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+
+        if (!permissionGranted) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.permissions_needed)
+                    .setMessage(R.string.permissions_needed_message)
+                    .setNeutralButton(R.string.okay, (dialog, which) -> {
+                        ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+                    }).create().show();
         }
     }
 
@@ -186,25 +114,30 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_tutorial) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.tutorial_title)
-                    .setMessage(R.string.tutorial_message_1)
-                    .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
-                    .setPositiveButton(R.string.next, (dialog, which) ->
-                            new AlertDialog.Builder(MainActivity.this)
-                                    .setNegativeButton(R.string.cancel, (d, w) -> d.cancel())
-                                    .setTitle(R.string.tutorial_title)
-                                    .setMessage(R.string.tutorial_message_2)
-                                    .setPositiveButton(R.string.next, (dial0g, wh1ch) ->
-                                            new AlertDialog.Builder(MainActivity.this)
-                                                    .setTitle(R.string.tutorial_title)
-                                                    .setMessage(R.string.tutorial_message_3)
-                                                    .setNeutralButton(R.string.okay, (d, w) -> d.dismiss()).show()).show()).show();
+            showTutorial();
             return true;
         } else if (id == R.id.action_settings) {
             startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+            return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
+    }
+
+    private void showTutorial() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.tutorial_title)
+                .setMessage(R.string.tutorial_message_1)
+                .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
+                .setPositiveButton(R.string.next, (dialog, which) ->
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setNegativeButton(R.string.cancel, (d, w) -> d.cancel())
+                                .setTitle(R.string.tutorial_title)
+                                .setMessage(R.string.tutorial_message_2)
+                                .setPositiveButton(R.string.next, (dial0g, wh1ch) ->
+                                        new AlertDialog.Builder(MainActivity.this)
+                                                .setTitle(R.string.tutorial_title)
+                                                .setMessage(R.string.tutorial_message_3)
+                                                .setNeutralButton(R.string.okay, (d, w) -> d.dismiss()).show()).show()).show();
     }
 
     public InetAddress getDeviceIpAddress(WifiManager wifi) {
