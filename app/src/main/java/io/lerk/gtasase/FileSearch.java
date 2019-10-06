@@ -1,6 +1,5 @@
 package io.lerk.gtasase;
 
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -17,29 +16,37 @@ public class FileSearch {
         return result;
     }
 
-    public static ArrayList<File> search() {
+    public static ArrayList<File> search(File searchDirectory) {
         ArrayList<File> results = new ArrayList<>();
         FileSearch fileSearch = new FileSearch();
-        fileSearch.searchDirectory(Environment.getExternalStorageDirectory());
+        fileSearch.searchDirectory(searchDirectory);
         List<String> result = fileSearch.getResult();
         result.forEach(s -> results.add(new File(s)));
         return results;
     }
 
     private void searchDirectory(File directory) {
+        while (!directory.getName().equals("data")) {
+            File parentFile = directory.getParentFile();
+            if (parentFile == null) {
+                break;
+            }
+            directory = parentFile;
+        }
         if (directory.isDirectory()) {
-            search(directory);
+            searchInternal(directory);
         } else {
             Log.e(TAG, "Not a directory: " + directory.getAbsoluteFile());
         }
     }
 
-    private void search(File file) {
+    private void searchInternal(File file) {
         if (file.isDirectory()) {
-            if (file.canRead()) {
-                for (File temp : file.listFiles()) {
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File temp : files) {
                     if (temp.isDirectory()) {
-                        search(temp);
+                        searchInternal(temp);
                     } else {
                         if (temp.getAbsolutePath().toLowerCase().contains("gtasa") && // make sure it's a savegame
                                 temp.getAbsolutePath().toLowerCase().contains("com.rockstar")) { // make sure it's in the app folder (package id is localized)
@@ -50,7 +57,7 @@ public class FileSearch {
                     }
                 }
             } else {
-                Log.e(TAG, "Permission Denied: " + file.getAbsoluteFile());
+                Log.w(TAG, "Directory contains no files: " + file.getAbsolutePath());
             }
         }
     }

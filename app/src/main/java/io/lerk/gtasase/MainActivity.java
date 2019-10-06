@@ -8,18 +8,10 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -29,16 +21,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import javax.jmdns.ServiceInfo;
-import javax.jmdns.impl.ServiceInfoImpl;
 
 import io.lerk.gtasase.adapters.ServiceInfoAdapter;
 import io.lerk.gtasase.tasks.MDNSTask;
-
-import static android.widget.Toast.LENGTH_LONG;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -88,9 +73,9 @@ public class MainActivity extends AppCompatActivity {
             new AlertDialog.Builder(this)
                     .setTitle(R.string.permissions_needed)
                     .setMessage(R.string.permissions_needed_message)
-                    .setNeutralButton(R.string.okay, (dialog, which) -> {
-                        ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-                    }).create().show();
+                    .setNeutralButton(R.string.okay, (dialog, which) ->
+                            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE))
+                    .create().show();
         }
     }
 

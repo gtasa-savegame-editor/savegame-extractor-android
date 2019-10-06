@@ -163,7 +163,7 @@ public class ServiceActivity extends AppCompatActivity {
 
         updateTitlebarText();
 
-        ArrayList<File> search = FileSearch.search();
+        ArrayList<File> search = FileSearch.search(getExternalFilesDir(null));
         //noinspection unchecked
         search.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
         //noinspection unchecked
