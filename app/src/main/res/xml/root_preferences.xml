@@ -10,6 +10,15 @@
             app:summaryOn="@string/setting_toasts_desc_on"
             app:title="@string/setting_toasts_label" />
     </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_file_system">
+        <ListPreference
+            app:key="searchMethod"
+            app:title="@string/setting_search_method_title"
+            app:summary="@string/setting_search_method_desc"
+            app:entryValues="@array/search_methods"
+            app:entries="@array/search_methods"
+            app:defaultValue="@string/search_method_manual" />
+    </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_network">
         <SeekBarPreference
             android:max="10000"

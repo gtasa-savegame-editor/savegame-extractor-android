@@ -1,6 +1,7 @@
 package io.lerk.gtasase;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -66,16 +67,17 @@ public class MainActivity extends AppCompatActivity {
             onMDNSError(new IOException("WifiManager is null!"));
         }
 
-        final boolean permissionGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        verifyStoragePermissions(this);
+    }
 
-        if (!permissionGranted) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.permissions_needed)
-                    .setMessage(R.string.permissions_needed_message)
-                    .setNeutralButton(R.string.okay, (dialog, which) ->
-                            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE))
-                    .create().show();
+    /**
+     * Checks if permission to access files is granted.
+     *
+     * @param context the context
+     */
+    public static void verifyStoragePermissions(Activity context) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(context, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         }
     }
 

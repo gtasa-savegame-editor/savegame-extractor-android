@@ -1,22 +1,17 @@
 package io.lerk.gtasase;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.PreferenceManager;
-
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
+import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,23 +22,22 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import java.io.BufferedReader;
+import com.google.android.material.snackbar.Snackbar;
+
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 
+import io.lerk.gtasase.adapters.SavegameFileAdapter;
+import io.lerk.gtasase.tasks.FileSearchTask;
 import io.lerk.gtasase.tasks.SavegamesFetchTask;
 
 public class ServiceActivity extends AppCompatActivity {
@@ -53,6 +47,9 @@ public class ServiceActivity extends AppCompatActivity {
     public static final String SERVICE_ADDRESS_KEY = "serviceAddress";
     public static final String SERVICE_PORT_KEY = "servicePort";
     private static final String TAG = ServiceActivity.class.getCanonicalName();
+    private static final int SELECT_SAVE_REQUEST_CODE = 42;
+    private static final String[] possibleSaves = {"GTASAsf1.b", "GTASAsf2.b", "GTASAsf3.b",
+            "GTASAsf4.b", "GTASAsf5.b", "GTASAsf6.b", "GTASAsf7.b", "GTASAsf8.b"};
 
     private boolean localView = true;
     private ListView savegameListView;
@@ -60,12 +57,19 @@ public class ServiceActivity extends AppCompatActivity {
     private String serviceAddress;
     private Menu menu;
 
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    private SwipeRefreshLayout refreshLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service);
 
-        SwipeRefreshLayout refreshLayout = findViewById(R.id.savegameRefreshLayout);
+        refreshLayout = findViewById(R.id.savegameRefreshLayout);
         refreshLayout.setEnabled(false);
         refreshLayout.setColorSchemeResources(R.color.primaryLightColor, R.color.primaryColor, R.color.primaryDarkColor);
 
@@ -86,88 +90,97 @@ public class ServiceActivity extends AppCompatActivity {
         savegameListView = findViewById(R.id.savegameListView);
         Log.i(TAG, "Using address: '" + serviceAddress + "'");
 
-        localFileAdapter = new ArrayAdapter<File>(this, R.layout.layout_savegame) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                File item = getItem(position);
-                if (item != null) {
-                    if (convertView != null) {
-                        return initView(convertView, item);
-                    } else {
-                        return initView(LayoutInflater.from(ServiceActivity.this).inflate(R.layout.layout_savegame, parent, false), item);
-                    }
-                }
-                return convertView;
-            }
+        MainActivity.verifyStoragePermissions(this);
 
-            @SuppressLint("StaticFieldLeak")
-            // The asyncTask has to (eg. will) finish before the activity does
-            private View initView(View view, File item) {
-                TextView savegameName = view.findViewById(R.id.savegame_name);
-                Button uploadButton = view.findViewById(R.id.upload_button);
-
-                savegameName.setText(item.getName());
-                uploadButton.setOnClickListener(v -> new AsyncTask<Void, Void, Throwable>() {
-
-                    private Snackbar snackbar;
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        snackbar = Snackbar.make(ServiceActivity.this.findViewById(R.id.serviceContent), R.string.uploading, Snackbar.LENGTH_INDEFINITE);
-                        snackbar.show();
-                    }
-
-                    @Override
-                    @SuppressLint("WrongThread") // wat
-                    protected Throwable doInBackground(Void... voids) {
-                        try {
-                            String requestUrl = "http://" + Arrays.stream(serviceAdresses).filter(a -> a != null && !a.isEmpty()).findFirst().orElseThrow(IllegalStateException::new);
-                            Log.d(TAG, "Using address: '" + requestUrl);
-                            MultipartUtility multipart = new MultipartUtility(requestUrl + ":" + servicePort + "/add", "UTF-8");
-
-                            multipart.addHeaderField("User-Agent", "GTASA Savegame Extractor (Android)");
-                            multipart.addFormField("version", PROTO_VERSION);
-
-                            multipart.addFilePart("savegame", item);
-
-                            StringBuilder responseBuilder = new StringBuilder();
-                            multipart.finish().forEach(responseBuilder::append);
-                            Log.d(TAG, "Server Response:\n" + responseBuilder.toString());
-                        } catch (Throwable ex) {
-                            Log.e(TAG, "Unable to upload savegame!", ex);
-                            return ex;
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Throwable ex) {
-                        snackbar.dismiss();
-                        if (ex == null) {
-                            new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                    .setTitle(R.string.upload_success_title)
-                                    .setMessage(R.string.upload_success_message).show();
-                        } else {
-                            new AlertDialog.Builder(ServiceActivity.this).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                    .setTitle(R.string.upload_error_title)
-                                    .setMessage(ex.getMessage()).show();
-                        }
-                    }
-                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR));
-
-                return view;
-            }
-        };
+        localFileAdapter = new SavegameFileAdapter(this, R.layout.layout_savegame, serviceAddress, servicePort);
         savegameListView.setAdapter(localFileAdapter);
 
         updateTitlebarText();
 
-        ArrayList<File> search = FileSearch.search(getExternalFilesDir(null));
-        //noinspection unchecked
-        search.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
-        //noinspection unchecked
-        ((ArrayAdapter<File>) savegameListView.getAdapter()).notifyDataSetChanged();
+        final boolean permissionGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+
+        if (!permissionGranted) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.permissions_needed)
+                    .setMessage(R.string.permissions_needed_message)
+                    .setNeutralButton(R.string.okay, (dialog, which) ->
+                            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE))
+                    .create().show();
+        }
+
+        String searchMethod = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("searchMethod", getString(R.string.search_method_manual));
+        if (searchMethod.equals(getString(R.string.search_method_manual))) {
+            Intent searchIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            startActivityForResult(searchIntent, SELECT_SAVE_REQUEST_CODE);
+        } else if (searchMethod.equals(getString(R.string.search_method_command_line))) {
+            runFileSearch(getStoragePath(), false);
+        } else if (searchMethod.equals(getString(R.string.search_method_file_api))) {
+            runFileSearch(getStoragePath(), true);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SELECT_SAVE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            ArrayList<File> files = new ArrayList<>();
+
+            if (data != null) {
+                for (String possibleSave : possibleSaves) {
+                    Uri uri = DocumentsContract.buildDocumentUriUsingTree(data.getData(), possibleSave);
+                    if (uri.getPath() != null) {
+                        File savegame = new File(uri.getPath());
+                        files.add(savegame);
+                    }
+                }
+            }
+
+            files.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
+            //noinspection unchecked
+            ((ArrayAdapter<File>) savegameListView.getAdapter()).notifyDataSetChanged();
+            refreshLayout.setRefreshing(false);
+        }
+    }
+
+    /**
+     * This method tries to find the primary storage path by using this app as a reference.
+     *
+     * @return a path similar to <pre>/storage/emulated/0</pre> or null if nothing was found.
+     */
+    @Nullable
+    private String getStoragePath() {
+        File externalFilesDir = getExternalFilesDir(null);
+        if (externalFilesDir == null) {
+            externalFilesDir = getFilesDir();
+        }
+        String[] split = externalFilesDir.getAbsolutePath().split(File.separator);
+        for (int i = 0; i < split.length; i++) {
+            if (split[i].equals("data")) {
+                StringBuilder sb = new StringBuilder();
+                for (int j = 0; j < i; j++) {
+                    sb.append(split[j]).append(File.separator);
+                }
+                return sb.toString();
+            }
+        }
+        return null;
+    }
+
+    private void runFileSearch(String searchDirectory, boolean useFileApi) {
+        File directory = new File(searchDirectory);
+        if (!directory.exists()) {
+            Log.w(TAG, "Directory does not exist: '" + directory.getAbsolutePath() + "'");
+        }
+        refreshLayout.setRefreshing(true);
+        FileSearchTask fileSearchTask = new FileSearchTask(directory, useFileApi, files -> {
+            //noinspection unchecked
+            files.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
+            //noinspection unchecked
+            ((ArrayAdapter<File>) savegameListView.getAdapter()).notifyDataSetChanged();
+            refreshLayout.setRefreshing(false);
+        });
+        fileSearchTask.execute();
     }
 
     private void updateTitlebarText() {

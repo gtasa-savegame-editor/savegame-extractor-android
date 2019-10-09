@@ -7,7 +7,7 @@
     <string name="upload_success_title">Upload Successful</string>
     <string name="upload_success_message">Upload finished successful!</string>
     <string name="upload_error_title">Upload Error</string>
-    <string name="toogle_service_view_mode">Toggle view mode</string>
+    <string name="toggle_service_view_mode">Toggle view mode</string>
     <string name="download">Download</string>
     <string name="download_success_title">Download Success</string>
     <string name="download_success_message">Download completed successfully</string>
@@ -51,4 +51,13 @@
     <string name="setting_fetch_timeout">Fetch Timeout</string>
     <string name="permissions_needed">Permissions Required</string>
     <string name="permissions_needed_message">This App needs permission to read and write to your external storage to work properly. You can grant those permissions in the following dialog.</string>
+    <string name="no">No</string>
+    <string name="yes">Yes</string>
+    <string name="storage_path_dialog_title">Storage Path</string>
+    <string name="settings_file_system">File System</string>
+    <string name="setting_search_method_title">Search Method</string>
+    <string name="setting_search_method_desc">Select the method by which savegames are selected.</string>
+    <string name="search_method_manual">Manual</string>
+    <string name="search_method_command_line">Command Line</string>
+    <string name="search_method_file_api">File API</string>
 </resources>

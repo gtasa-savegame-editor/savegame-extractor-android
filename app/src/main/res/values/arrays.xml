@@ -1,12 +1,7 @@
 <resources>
-    <!-- Reply Preference -->
-    <string-array name="reply_entries">
-        <item>Reply</item>
-        <item>Reply to all</item>
-    </string-array>
-
-    <string-array name="reply_values">
-        <item>reply</item>
-        <item>reply_all</item>
+    <string-array name="search_methods">
+        <item>@string/search_method_manual</item>
+        <item>@string/search_method_command_line</item>
+        <item>@string/search_method_file_api</item>
     </string-array>
 </resources>
