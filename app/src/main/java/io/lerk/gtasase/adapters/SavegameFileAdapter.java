@@ -63,9 +63,11 @@ public class SavegameFileAdapter extends ArrayAdapter<File> {
 
     private View initView(View view, File item) {
         TextView savegameName = view.findViewById(R.id.savegame_name);
+        TextView savegamePath = view.findViewById(R.id.savegame_path);
         Button uploadButton = view.findViewById(R.id.upload_button);
 
         savegameName.setText(item.getName());
+        savegamePath.setText(item.getParent());
         uploadButton.setOnClickListener(v -> {
             Snackbar uploadingSnackbar = Snackbar.make(((ServiceActivity) getContext()).findViewById(R.id.serviceContent),
                     R.string.uploading, Snackbar.LENGTH_INDEFINITE);

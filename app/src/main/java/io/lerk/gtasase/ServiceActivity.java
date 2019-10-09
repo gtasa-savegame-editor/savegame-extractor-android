@@ -35,6 +35,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import io.lerk.gtasase.adapters.SavegameFileAdapter;
 import io.lerk.gtasase.tasks.FileSearchTask;
@@ -48,8 +49,8 @@ public class ServiceActivity extends AppCompatActivity {
     public static final String SERVICE_PORT_KEY = "servicePort";
     private static final String TAG = ServiceActivity.class.getCanonicalName();
     private static final int SELECT_SAVE_REQUEST_CODE = 42;
-    private static final String[] possibleSaves = {"GTASAsf1.b", "GTASAsf2.b", "GTASAsf3.b",
-            "GTASAsf4.b", "GTASAsf5.b", "GTASAsf6.b", "GTASAsf7.b", "GTASAsf8.b"};
+    private static final ArrayList<String> possibleSaves = new ArrayList<>(Arrays.asList(
+            "GTASAsf1.b", "GTASAsf2.b", "GTASAsf3.b", "GTASAsf4.b", "GTASAsf5.b", "GTASAsf6.b", "GTASAsf7.b", "GTASAsf8.b"));
 
     private boolean localView = true;
     private ListView savegameListView;
@@ -111,7 +112,9 @@ public class ServiceActivity extends AppCompatActivity {
 
         String searchMethod = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("searchMethod", getString(R.string.search_method_manual));
         if (searchMethod.equals(getString(R.string.search_method_manual))) {
-            Intent searchIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            Intent searchIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            searchIntent.addCategory(Intent.CATEGORY_OPENABLE);
+            searchIntent.setType("*/*");
             startActivityForResult(searchIntent, SELECT_SAVE_REQUEST_CODE);
         } else if (searchMethod.equals(getString(R.string.search_method_command_line))) {
             runFileSearch(getStoragePath(), false);
@@ -127,13 +130,16 @@ public class ServiceActivity extends AppCompatActivity {
             ArrayList<File> files = new ArrayList<>();
 
             if (data != null) {
-                for (String possibleSave : possibleSaves) {
-                    Uri uri = DocumentsContract.buildDocumentUriUsingTree(data.getData(), possibleSave);
-                    if (uri.getPath() != null) {
-                        File savegame = new File(uri.getPath());
-                        files.add(savegame);
+
+                Uri uri = data.getData();
+                if (uri.getPath() != null) {
+                    File savegame = new File(uri.getPath());
+                    boolean hasValidName = possibleSaves.contains(savegame.getName());
+                    if (hasValidName) {
+                        files.add(savegame); //FIXME whatever garbage android produces here is not readable as file :c
                     }
                 }
+
             }
 
             files.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
