@@ -29,7 +29,7 @@
     <string name="tutorial_title">Tutorial</string>
     <string name="cancel">Cancel</string>
     <string name="tutorial_message_1">On the main view you can find a list of all available servers. You need a compatible version of the gtasa-savegame-editor with a running server in the same network as the Android device for it to appear.</string>
-    <string name="tutorial_message_2">After clicking \'connect\', the locally detected savegames are shown. The view between local files and files available on the server can be switched using the menu.</string>
+    <string name="tutorial_message_2">After clicking \'connect\', the locally detected savegames are shown. The view between local files and files available on the server can be switched using the menu. Please make sure that your Firewall permits connections to the savegame editor.</string>
     <string name="tutorial_message_3">There are multiple methods to search for savegames. Usually, the only working one is the "manual" mode, where you have to select a folder from which savegames can be found. The manual mode is active by default!</string>
     <string name="tutorial_message_4">Downloads happen using the Android download manager. For now it\'s necessary to use a file manager to copy the files into the right folder after modifying it.</string>
     <string name="address_error_message">Unable to get address.</string>
@@ -47,7 +47,7 @@
     <string name="setting_toasts_desc_on">Toasts will be shown on certain events.</string>
     <string name="setting_toasts_desc_off">No Toasts will be shown.</string>
     <string name="settings_network">Network</string>
-    <string name="setting_fetch_timeout_default">5000</string>
+    <string name="setting_fetch_timeout_default" translatable="false">5000</string>
     <string name="setting_fetch_timeout_desc">Sets the request timeout in milliseconds, zero is indefinite.</string>
     <string name="setting_fetch_timeout">Fetch Timeout</string>
     <string name="permissions_needed">Permissions Required</string>
@@ -61,5 +61,7 @@
     <string name="search_method_manual">Manual</string>
     <string name="search_method_command_line">Command Line</string>
     <string name="search_method_file_api">File API</string>
-    <string name="no_services_found">No services found. Make sure your phone is in the same WiFi as the Savegame Editor and your Firewall permits connections.</string>
+    <string name="no_services_found">No services found (yet). Make sure your phone is in the same WiFi as the Savegame Editor and your Firewall permits connections.</string>
+    <string name="file_selection_hint">Since \"manual\" file discovery is selected in the settings, this app will now open a file selection dialog. Please select a savegame (slot 1–8).</string>
+    <string name="file_selection_hint_title">Manual Mode</string>
 </resources>

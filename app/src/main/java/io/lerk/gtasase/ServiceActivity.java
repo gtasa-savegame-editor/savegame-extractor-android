@@ -113,10 +113,15 @@ public class ServiceActivity extends AppCompatActivity {
 
         String searchMethod = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("searchMethod", getString(R.string.search_method_manual));
         if (searchMethod.equals(getString(R.string.search_method_manual))) {
-            Intent searchIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            searchIntent.addCategory(Intent.CATEGORY_OPENABLE);
-            searchIntent.setType("*/*");
-            startActivityForResult(searchIntent, SELECT_SAVE_REQUEST_CODE);
+            new AlertDialog.Builder(this)
+                    .setMessage(R.string.file_selection_hint)
+                    .setTitle(R.string.file_selection_hint_title)
+                    .setNeutralButton(R.string.okay, (d, w) -> {
+                        Intent searchIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                        searchIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                        searchIntent.setType("*/*");
+                        startActivityForResult(searchIntent, SELECT_SAVE_REQUEST_CODE);
+                    }).show();
         } else if (searchMethod.equals(getString(R.string.search_method_command_line))) {
             runFileSearch(getStoragePath(), false);
         } else if (searchMethod.equals(getString(R.string.search_method_file_api))) {
