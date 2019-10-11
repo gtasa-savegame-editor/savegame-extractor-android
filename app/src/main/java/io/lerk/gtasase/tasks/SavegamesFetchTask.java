@@ -145,7 +145,7 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<Pair<Uri
 
             @Override
             public ArrayAdapter<Pair<Uri, File>> getListAdapter() {
-                return activity.getLocalFileAdapter();
+                return activity.getRemoteSavegameAdapter();
             }
 
             @Override
