@@ -5,13 +5,16 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.DataSetObserver;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -51,9 +54,26 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setEnabled(false);
         swipeRefreshLayout.setColorSchemeResources(R.color.primaryDarkColor, R.color.primaryColor, R.color.primaryLightColor);
 
+        TextView noServicesFoundTextView = findViewById(R.id.noServicesFoundText);
+        noServicesFoundTextView.setVisibility(View.VISIBLE);
+
         ListView serviceList = findViewById(R.id.serviceList);
+        serviceList.setVisibility(View.INVISIBLE);
         ServiceInfoAdapter adapter = new ServiceInfoAdapter(this, R.layout.layout_service);
         adapter.setNotifyOnChange(true); // !!!!
+        adapter.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                if(adapter.getCount() == 0) {
+                    noServicesFoundTextView.setVisibility(View.VISIBLE);
+                    serviceList.setVisibility(View.INVISIBLE);
+                } else {
+                    noServicesFoundTextView.setVisibility(View.GONE);
+                    serviceList.setVisibility(View.VISIBLE);
+                }
+            }
+        });
         serviceList.setAdapter(adapter);
 
         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);

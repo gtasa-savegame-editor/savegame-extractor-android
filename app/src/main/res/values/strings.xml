@@ -61,4 +61,5 @@
     <string name="search_method_manual">Manual</string>
     <string name="search_method_command_line">Command Line</string>
     <string name="search_method_file_api">File API</string>
+    <string name="no_services_found">No services found. Make sure your phone is in the same WiFi as the Savegame Editor and your Firewall permits connections.</string>
 </resources>
