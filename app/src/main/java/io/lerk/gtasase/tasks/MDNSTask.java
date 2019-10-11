@@ -71,7 +71,7 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
                     }
                     for (int i = 0; i < serviceListAdapter.getCount(); i++) {
                         ServiceInfo item = serviceListAdapter.getItem(i);
-                        if (item != null && (item.getName().equals(event.getName()) && item.getPort() == event.getInfo().getPort())) {
+                        if (item != null && (item.getName().equals(event.getName()))) {
                             serviceListAdapter.remove(item);
                         }
                     }
@@ -86,11 +86,11 @@ public class MDNSTask extends AsyncTask<Void, Void, Void> {
                     }
                     for (int i = 0; i < serviceListAdapter.getCount(); i++) {
                         ServiceInfo item = serviceListAdapter.getItem(i);
-                        if (item != null && (item.getName().equals(event.getName()) || item.getPort() == event.getInfo().getPort())) {
+                        if (item != null && (item.getName().equals(event.getName()))) {
                             serviceListAdapter.remove(item);
-                            serviceListAdapter.add(event.getInfo());
                         }
                     }
+                    serviceListAdapter.add(event.getInfo());
                 });
             }
 
