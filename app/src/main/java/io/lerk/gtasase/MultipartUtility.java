@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -32,7 +33,7 @@ public class MultipartUtility {
      * is set to multipart/form-data
      *
      * @param requestURL request url
-     * @param charset charset
+     * @param charset    charset
      * @throws IOException on error
      */
     public MultipartUtility(String requestURL, String charset)
@@ -45,12 +46,11 @@ public class MultipartUtility {
         URL url = new URL(requestURL);
         httpConn = (HttpURLConnection) url.openConnection();
         httpConn.setUseCaches(false);
-        httpConn.setDoOutput(true); // indicates POST method
+        httpConn.setDoOutput(true);
         httpConn.setDoInput(true);
-        httpConn.setRequestProperty("Content-Type",
-                "multipart/form-data; boundary=" + boundary);
-        httpConn.setRequestProperty("User-Agent", "CodeJava Agent");
-        httpConn.setRequestProperty("Test", "Bonjour");
+        httpConn.setRequestMethod("POST");
+        httpConn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+        httpConn.connect();
         outputStream = httpConn.getOutputStream();
         writer = new PrintWriter(new OutputStreamWriter(outputStream, charset),
                 true);
@@ -63,11 +63,9 @@ public class MultipartUtility {
      * @param value field value
      */
     public void addFormField(String name, String value) {
-        writer.append("--" + boundary).append(LINE_FEED);
-        writer.append("Content-Disposition: form-data; name=\"" + name + "\"")
-                .append(LINE_FEED);
-        writer.append("Content-Type: text/plain; charset=" + charset).append(
-                LINE_FEED);
+        writer.append("--").append(boundary).append(LINE_FEED);
+        writer.append("Content-Disposition: form-data; name=\"").append(name).append("\"").append(LINE_FEED);
+        writer.append("Content-Type: text/plain; charset=").append(charset).append(LINE_FEED);
         writer.append(LINE_FEED);
         writer.append(value).append(LINE_FEED);
         writer.flush();
@@ -80,14 +78,12 @@ public class MultipartUtility {
      * @param uploadFile a File to be uploaded
      * @throws IOException on error
      */
-    public void addFilePart(String fieldName, File uploadFile)
+    public void addFilePart(String fieldName, File uploadFile, InputStream inputStream)
             throws IOException {
         String fileName = uploadFile.getName();
-        writer.append("--" + boundary).append(LINE_FEED);
-        writer.append(
-                "Content-Disposition: form-data; name=\"" + fieldName
-                        + "\"; filename=\"" + fileName + "\"")
-                .append(LINE_FEED);
+        writer.append("--").append(boundary).append(LINE_FEED);
+        writer.append("Content-Disposition: form-data; name=\"").append(fieldName)
+                .append("\"; filename=\"").append(fileName).append("\"").append(LINE_FEED);
         writer.append(
                 "Content-Type: application/octet-stream") //force files to be octet-stream
                 .append(LINE_FEED);
@@ -95,11 +91,11 @@ public class MultipartUtility {
         writer.append(LINE_FEED);
         writer.flush();
 
-        FileInputStream inputStream = new FileInputStream(uploadFile);
         byte[] buffer = new byte[4096];
-        int bytesRead = -1;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
+        int bytesRead = inputStream.read(buffer);
+        while (bytesRead != -1) {
             outputStream.write(buffer, 0, bytesRead);
+            bytesRead = inputStream.read(buffer);
         }
         outputStream.flush();
         inputStream.close();
@@ -130,7 +126,7 @@ public class MultipartUtility {
         List<String> response = new ArrayList<String>();
 
         writer.append(LINE_FEED).flush();
-        writer.append("--" + boundary + "--").append(LINE_FEED);
+        writer.append("--").append(boundary).append("--").append(LINE_FEED);
         writer.close();
 
         // checks server's status code first

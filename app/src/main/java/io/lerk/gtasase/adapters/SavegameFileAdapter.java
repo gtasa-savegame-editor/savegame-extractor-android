@@ -1,6 +1,9 @@
 package io.lerk.gtasase.adapters;
 
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +13,14 @@ import android.widget.TextView;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 import io.lerk.gtasase.R;
 import io.lerk.gtasase.ServiceActivity;
@@ -25,7 +31,7 @@ import io.lerk.gtasase.tasks.SavegameUploadTask;
  *
  * @author Lukas Fülling (lukas@k40s.net)
  */
-public class SavegameFileAdapter extends ArrayAdapter<File> {
+public class SavegameFileAdapter extends ArrayAdapter<Pair<Uri, File>> {
 
     private static final String TAG = SavegameFileAdapter.class.getCanonicalName();
     private final String serviceAddress;
@@ -49,19 +55,19 @@ public class SavegameFileAdapter extends ArrayAdapter<File> {
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        File item = getItem(position);
+        Pair<Uri, File> item = getItem(position);
         if (item != null) {
             if (convertView != null) {
-                return initView(convertView, item);
+                return initView(convertView, item.second, item.first);
             } else {
-                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_savegame, parent, false), item);
+                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_savegame, parent, false), item.second, item.first);
             }
         }
         return convertView;
     }
 
 
-    private View initView(View view, File item) {
+    private View initView(View view, File item, Uri uri) {
         TextView savegameName = view.findViewById(R.id.savegame_name);
         TextView savegamePath = view.findViewById(R.id.savegame_path);
         Button uploadButton = view.findViewById(R.id.upload_button);
@@ -72,15 +78,29 @@ public class SavegameFileAdapter extends ArrayAdapter<File> {
             Snackbar uploadingSnackbar = Snackbar.make(((ServiceActivity) getContext()).findViewById(R.id.serviceContent),
                     R.string.uploading, Snackbar.LENGTH_INDEFINITE);
 
-            new SavegameUploadTask(uploadingSnackbar, item, serviceAddress, servicePort, ex -> {
-                if (ex == null) {
-                    new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                            .setTitle(R.string.upload_success_title)
-                            .setMessage(R.string.upload_success_message).show();
-                } else {
-                    new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                            .setTitle(R.string.upload_error_title)
-                            .setMessage(ex.getMessage()).show();
+            new SavegameUploadTask(uploadingSnackbar, item, serviceAddress, new SavegameUploadTask.Callback() {
+                @Override
+                public void call(@Nullable Throwable ex) {
+                    if (ex == null) {
+                        new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
+                                .setTitle(R.string.upload_success_title)
+                                .setMessage(R.string.upload_success_message).show();
+                    } else {
+                        new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
+                                .setTitle(R.string.upload_error_title)
+                                .setMessage(ex.getMessage()).show();
+                    }
+                }
+
+                @Override
+                @Nullable
+                public InputStream getInputStream() {
+                    try {
+                        return getContext().getContentResolver().openInputStream(uri);
+                    } catch (FileNotFoundException e) {
+                        Log.e(TAG, "Unable to open savegame!", e);
+                    }
+                    return null;
                 }
             }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         });

@@ -1,8 +1,10 @@
 package io.lerk.gtasase.tasks;
 
 import android.app.AlertDialog;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -23,7 +25,7 @@ import java.util.HashMap;
 import io.lerk.gtasase.R;
 import io.lerk.gtasase.ServiceActivity;
 
-public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
+public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<Pair<Uri, File>>> {
 
     private static final String TAG = SavegamesFetchTask.class.getCanonicalName();
 
@@ -40,7 +42,7 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
     }
 
     @Override
-    protected ArrayList<File> doInBackground(Void... voids) {
+    protected ArrayList<Pair<Uri, File>> doInBackground(Void... voids) {
         try {
             URL url = new URL("http://" + activityCallback.getServiceAddress() + "/list");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -58,14 +60,14 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
             }
             in.close();
             con.disconnect();
-            ArrayList<File> res = new ArrayList<>();
+            ArrayList<Pair<Uri, File>> res = new ArrayList<>();
             @SuppressWarnings("unchecked") ArrayList<HashMap<String, String>> results = new ObjectMapper().readValue(content.toString(), ArrayList.class);
             results.forEach(m -> {
                 String name = m.get("name");
                 if (name == null) {
                     name = activityCallback.getGenericSavegameName();
                 }
-                res.add(new File(name));
+                res.add(new Pair<>(Uri.parse(name), new File(name)));
             });
             return res;
         } catch (IOException e) {
@@ -76,12 +78,12 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
     }
 
     @Override
-    protected void onPostExecute(ArrayList<File> files) {
+    protected void onPostExecute(ArrayList<Pair<Uri, File>> files) {
         activityCallback.setLoading(false);
         if (files != null) {
             if (files.size() > 0) {
                 activityCallback.onFetchSuccessToast();
-                ArrayAdapter<File> adapter = activityCallback.getListAdapter();
+                ArrayAdapter<Pair<Uri, File>> adapter = activityCallback.getListAdapter();
                 files.forEach(adapter::add);
                 adapter.notifyDataSetChanged();
             } else {
@@ -142,7 +144,7 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
             }
 
             @Override
-            public ArrayAdapter<File> getListAdapter() {
+            public ArrayAdapter<Pair<Uri, File>> getListAdapter() {
                 return activity.getLocalFileAdapter();
             }
 
@@ -173,7 +175,7 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<File>> {
 
         void onErrorDialog();
 
-        ArrayAdapter<File> getListAdapter();
+        ArrayAdapter<Pair<Uri, File>> getListAdapter();
 
         String getGenericSavegameName();
 

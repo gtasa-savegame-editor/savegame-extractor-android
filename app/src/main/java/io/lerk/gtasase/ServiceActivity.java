@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,7 +55,7 @@ public class ServiceActivity extends AppCompatActivity {
 
     private boolean localView = true;
     private ListView savegameListView;
-    private ArrayAdapter<File> localFileAdapter;
+    private ArrayAdapter<Pair<Uri, File>> localFileAdapter;
     private String serviceAddress;
     private Menu menu;
 
@@ -127,26 +128,47 @@ public class ServiceActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SELECT_SAVE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            ArrayList<File> files = new ArrayList<>();
+            ArrayList<Pair<Uri, File>> files = new ArrayList<>();
 
             if (data != null) {
 
                 Uri uri = data.getData();
-                if (uri.getPath() != null) {
-                    File savegame = new File(uri.getPath());
-                    boolean hasValidName = possibleSaves.contains(savegame.getName());
-                    if (hasValidName) {
-                        files.add(savegame); //FIXME whatever garbage android produces here is not readable as file :c
+                if (uri != null) {
+                    if (uri.getPath() != null) {
+                        String pathname = null;
+                        if ("com.android.externalstorage.documents".equals(uri.getAuthority())) {
+                            pathname = resolveGarbageUri(uri);
+                        }
+                        if (pathname == null) {
+                            pathname = uri.getPath();
+                        }
+                        File savegame = new File(pathname);
+                        boolean hasValidName = possibleSaves.contains(savegame.getName());
+                        if (hasValidName) {
+                            files.add(new Pair<>(uri, savegame));
+                        }
                     }
                 }
 
             }
 
-            files.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
+            files.forEach(p -> ((ArrayAdapter<Pair<Uri, File>>) savegameListView.getAdapter()).add(p));
             //noinspection unchecked
-            ((ArrayAdapter<File>) savegameListView.getAdapter()).notifyDataSetChanged();
+            ((ArrayAdapter<Pair<Uri, File>>) savegameListView.getAdapter()).notifyDataSetChanged();
             refreshLayout.setRefreshing(false);
         }
+    }
+
+    @Nullable
+    private String resolveGarbageUri(Uri uri) {
+        final String docId = DocumentsContract.getDocumentId(uri);
+        final String[] split = docId.split(":");
+        final String type = split[0];
+
+        if ("primary".equalsIgnoreCase(type)) {
+            return Environment.getExternalStorageDirectory() + "/" + split[1];
+        }
+        return null;
     }
 
     /**
@@ -181,9 +203,9 @@ public class ServiceActivity extends AppCompatActivity {
         refreshLayout.setRefreshing(true);
         FileSearchTask fileSearchTask = new FileSearchTask(directory, useFileApi, files -> {
             //noinspection unchecked
-            files.forEach(f -> ((ArrayAdapter<File>) savegameListView.getAdapter()).add(f));
+            files.forEach(f -> ((ArrayAdapter<Pair<Uri, File>>) savegameListView.getAdapter()).add(f));
             //noinspection unchecked
-            ((ArrayAdapter<File>) savegameListView.getAdapter()).notifyDataSetChanged();
+            ((ArrayAdapter<Pair<Uri, File>>) savegameListView.getAdapter()).notifyDataSetChanged();
             refreshLayout.setRefreshing(false);
         });
         fileSearchTask.execute();
@@ -207,15 +229,15 @@ public class ServiceActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (localView) {
-            savegameListView.setAdapter(new ArrayAdapter<File>(this, R.layout.layout_savegame) {
+            savegameListView.setAdapter(new ArrayAdapter<Pair<Uri, File>>(this, R.layout.layout_savegame) {
                 @Override
                 public View getView(int position, View convertView, ViewGroup parent) {
-                    File item = getItem(position);
+                    Pair<Uri, File> item = getItem(position);
                     if (item != null) {
                         if (convertView != null) {
-                            return initView(convertView, item);
+                            return initView(convertView, item.second);
                         } else {
-                            return initView(LayoutInflater.from(ServiceActivity.this).inflate(R.layout.layout_savegame, parent, false), item);
+                            return initView(LayoutInflater.from(ServiceActivity.this).inflate(R.layout.layout_savegame, parent, false), item.second);
                         }
                     }
                     return convertView;
@@ -282,7 +304,7 @@ public class ServiceActivity extends AppCompatActivity {
         return serviceAddress;
     }
 
-    public ArrayAdapter<File> getLocalFileAdapter() {
+    public ArrayAdapter<Pair<Uri, File>> getLocalFileAdapter() {
         return localFileAdapter;
     }
 }

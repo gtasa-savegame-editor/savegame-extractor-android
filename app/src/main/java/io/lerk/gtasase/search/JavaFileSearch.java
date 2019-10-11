@@ -1,11 +1,10 @@
 package io.lerk.gtasase.search;
 
+import android.net.Uri;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
+import android.util.Pair;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -22,7 +21,7 @@ public class JavaFileSearch implements FileSearch {
     private JavaFileSearch() {
     }
 
-    public static ArrayList<File> execute(File searchDirectory) {
+    public static ArrayList<Pair<Uri, File>> execute(File searchDirectory) {
         if (instance == null) {
             instance = new JavaFileSearch();
         }
@@ -31,13 +30,13 @@ public class JavaFileSearch implements FileSearch {
 
 
     @Override
-    public ArrayList<File> search(File searchDirectory) {
-        ArrayList<File> result = new ArrayList<>();
+    public ArrayList<Pair<Uri, File>> search(File searchDirectory) {
+        ArrayList<Pair<Uri, File>> result = new ArrayList<>();
         searchInternal(searchDirectory, result);
         return result;
     }
 
-    private void searchInternal(File searchItem, ArrayList<File> result) {
+    private void searchInternal(File searchItem, ArrayList<Pair<Uri, File>> result) {
         if (searchItem.isDirectory()) {
             if (searchItem.canRead()) {
                 searchInternal(searchItem, result);
@@ -48,7 +47,7 @@ public class JavaFileSearch implements FileSearch {
             Log.d(TAG, "Not a directory: '" + searchItem.getAbsolutePath() + "'!");
             String[] pathSplit = searchItem.getAbsolutePath().split(File.separator);
             if (pathSplit[pathSplit.length - 1].startsWith("GTASAsf")) {
-                result.add(searchItem);
+                result.add(new Pair<>(Uri.fromFile(searchItem), searchItem));
             }
         }
     }

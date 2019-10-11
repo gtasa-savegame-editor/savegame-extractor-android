@@ -1,6 +1,8 @@
 package io.lerk.gtasase.search;
 
+import android.net.Uri;
 import android.util.Log;
+import android.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +40,7 @@ public class CommandLineSearch implements FileSearch {
      * @param searchDirectory the directory to start the search from
      * @return a list of found savegames
      */
-    public static ArrayList<File> execute(File searchDirectory) {
+    public static ArrayList<Pair<Uri, File>> execute(File searchDirectory) {
         if (instance == null) {
             instance = new CommandLineSearch();
         }
@@ -53,7 +55,7 @@ public class CommandLineSearch implements FileSearch {
      * @see #execute(File)
      */
     @Override
-    public ArrayList<File> search(File searchDirectory) {
+    public ArrayList<Pair<Uri, File>> search(File searchDirectory) {
         searchInternal(searchDirectory);
         return getFiles();
     }
@@ -64,13 +66,13 @@ public class CommandLineSearch implements FileSearch {
      *
      * @return an {@link ArrayList} of {@link File}s
      */
-    private ArrayList<File> getFiles() {
-        ArrayList<File> results = new ArrayList<>();
+    private ArrayList<Pair<Uri, File>> getFiles() {
+        ArrayList<Pair<Uri, File>> results = new ArrayList<>();
         result.forEach(s -> {
             if (!s.isEmpty()) {
                 File file = new File(s);
                 if (file.exists()) {
-                    results.add(file);
+                    results.add(new Pair<>(Uri.fromFile(file), file));
                 } else {
                     Log.d(TAG, "File does not exist: '" + file.getAbsolutePath() + "'");
                 }

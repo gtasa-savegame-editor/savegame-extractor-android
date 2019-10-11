@@ -1,5 +1,8 @@
 package io.lerk.gtasase.search;
 
+import android.net.Uri;
+import android.util.Pair;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -16,6 +19,6 @@ public interface FileSearch {
      * @param searchDirectory the directory to start the search from
      * @return a list of found savegames
      */
-    ArrayList<File> search(File searchDirectory);
+    ArrayList<Pair<Uri, File>> search(File searchDirectory);
 
 }
