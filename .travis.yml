@@ -1,0 +1,28 @@
+language: android
+android:
+  components:
+    - build-tools-29.0.0
+    - android-26
+    - android-29
+    - extra-google-google_play_services
+    - extra-google-m2repository
+    - extra-android-m2repository
+    - addon-google_apis-google-28
+    - sys-img-armeabi-v7a-android-24
+env:
+  global:
+    - ADB_INSTALL_TIMEOUT=8
+script:
+  - "./gradlew build -S"
+  - "./gradlew assembleRelease"
+deploy:
+  provider: releases
+  overwrite: true
+  file_glob: true
+  skip_cleanup: true
+  api_key:
+    secure: oHZOEmKcrsrbRz5VRTCJMk4pUlS9oPalKrbTRUpUMNKl32D8OUAxYjnx45+RvBarv0y0/vadWNMh5cJcR02O7dP2n0aGazIAn5k45ZmAt3l8AFTpqzsnVzfaRV3U5d1eAui0JWo140dV3Q5kk9Gu7adlctrA+svnC/WzXzy/bjSZYSyxmrVijuwyDKX7r/OJ/vg2Cn9YGxDYH9YK5+8smkQehzQEXWynXJ6f5eKHuLjdP/OTrOFKE3SLnaoB7M39IslwlhLnyvc9jxw0wSElQU6LWXuMmc5yt6IyUlZtkRJdLlrmvWZEOLYR9K8p56UjlDlz0FnT2e+lEHCGIpveMM0Me+eM2LfNVtxDL59CAjPWFk+1a8MCYgCsLHaziXVRAMsEKEbPLtDXjLOqKaCAXkUk8UokffN8wXm22UAg/QxT7lCVov+s41JLDJDRUSEHbtQ6j0aZWIgjJUlCOt4aVbZ0j4EqcKrX1su7iJDzJNPl8pOz6WALojE6S6tuEnCycSkujquzl9BvhMr1lYiDcu64eeMNjgRJ9eWHv5BerQpQMjUlqTUhSOZC5O0enWSdnnrPab/+3Uo5R1cC2DdfjNzIMrY7rq8w7ZlKxf9IVfG0sUQpD9criJUiYwo88piHQ4pcd3ocTmm2awf8dK6WqCTUN78T+ySiQGwf+N6fi/w=
+  file: /home/travis/build/gtasa-savegame-editor/savegame-extractor-android/app/build/outputs/apk/release/*.apk
+  on:
+    repo: gtasa-savegame-editor/savegame-extractor-android
+    tags: true
