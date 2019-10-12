@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged() {
                 super.onChanged();
-                if(adapter.getCount() == 0) {
+                if (adapter.getCount() == 0) {
                     noServicesFoundTextView.setVisibility(View.VISIBLE);
                     serviceList.setVisibility(View.INVISIBLE);
                 } else {
@@ -144,8 +144,14 @@ public class MainActivity extends AppCompatActivity {
                                 .setPositiveButton(R.string.next, (dial0g, wh1ch) ->
                                         new AlertDialog.Builder(MainActivity.this)
                                                 .setTitle(R.string.tutorial_title)
+                                                .setNegativeButton(R.string.cancel, (d, w) -> d.cancel())
                                                 .setMessage(R.string.tutorial_message_3)
-                                                .setNeutralButton(R.string.okay, (d, w) -> d.dismiss()).show()).show()).show();
+                                                .setPositiveButton(R.string.next, (d, w) ->
+                                                        new AlertDialog.Builder(MainActivity.this)
+                                                                .setTitle(R.string.tutorial_title)
+                                                                .setMessage(R.string.tutorial_message_4)
+                                                                .setPositiveButton(R.string.okay, (d1, w1) -> d.dismiss())
+                                                                .show()).show()).show()).show();
     }
 
     public InetAddress getDeviceIpAddress(WifiManager wifi) {

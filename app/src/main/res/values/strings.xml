@@ -29,8 +29,8 @@
     <string name="tutorial_title">Tutorial</string>
     <string name="cancel">Cancel</string>
     <string name="tutorial_message_1">On the main view you can find a list of all available servers. You need a compatible version of the gtasa-savegame-editor with a running server in the same network as the Android device for it to appear.</string>
-    <string name="tutorial_message_2">After clicking \'connect\', the locally detected savegames are shown. The view between local files and files available on the server can be switched using the menu. Please make sure that your Firewall permits connections to the savegame editor.</string>
-    <string name="tutorial_message_3">There are multiple methods to search for savegames. Usually, the only working one is the "manual" mode, where you have to select a folder from which savegames can be found. The manual mode is active by default!</string>
+    <string name="tutorial_message_2">After clicking \'connect\', the locally detected savegames are shown. The view between local files and files available on the server can be switched using the cloud symbol on the action bar.\nPlease make sure that your Firewall permits connections to the savegame editor.</string>
+    <string name="tutorial_message_3">There are multiple methods to search for savegames. Usually, the only working one is the \"manual single file\" mode, where you have to select a single savegame.\nThere is also a \"manual folder\" mode where you can select a folder in which savegames can be found.\nThe "manual single file" mode is active by default!</string>
     <string name="tutorial_message_4">Downloads happen using the Android download manager. For now it\'s necessary to use a file manager to copy the files into the right folder after modifying it.</string>
     <string name="address_error_message">Unable to get address.</string>
     <string name="mdns_error_title">Error!</string>
