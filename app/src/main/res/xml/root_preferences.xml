@@ -17,7 +17,7 @@
             app:summary="@string/setting_search_method_desc"
             app:entryValues="@array/search_methods"
             app:entries="@array/search_methods"
-            app:defaultValue="@string/search_method_manual" />
+            app:defaultValue="@string/search_method_manual_file" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_network">
         <SeekBarPreference

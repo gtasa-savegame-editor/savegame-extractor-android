@@ -24,6 +24,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -43,7 +44,8 @@ public class SavegameActivity extends AppCompatActivity {
     public static final String SERVICE_ADDRESS_KEY = "serviceAddress";
     public static final String SERVICE_PORT_KEY = "servicePort";
     private static final String TAG = SavegameActivity.class.getCanonicalName();
-    private static final int SELECT_SAVE_REQUEST_CODE = 42;
+    private static final int SELECT_SAVE_REQUEST_CODE_FILE = 42;
+    private static final int SELECT_SAVE_REQUEST_CODE_DIRECTORY = 43;
     private static final ArrayList<String> possibleSaves = new ArrayList<>(Arrays.asList(
             "GTASAsf1.b", "GTASAsf2.b", "GTASAsf3.b", "GTASAsf4.b", "GTASAsf5.b", "GTASAsf6.b", "GTASAsf7.b", "GTASAsf8.b"));
 
@@ -111,41 +113,79 @@ public class SavegameActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == SELECT_SAVE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            ArrayList<Pair<Uri, File>> files = new ArrayList<>();
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == SELECT_SAVE_REQUEST_CODE_FILE) {
+                resolveSingleFile(data);
+                refreshLayout.setRefreshing(false);
+            } else if (requestCode == SELECT_SAVE_REQUEST_CODE_DIRECTORY) {
+                resolveDirectory(data);
+                refreshLayout.setRefreshing(false);
+            }
+        }
+    }
 
-            if (data != null) {
+    private void resolveDirectory(@Nullable Intent data) {
+        ArrayList<Pair<Uri, File>> files = new ArrayList<>();
 
-                Uri uri = data.getData();
-                if (uri != null) {
-                    if (uri.getPath() != null) {
-                        String pathname = null;
-                        if ("com.android.externalstorage.documents".equals(uri.getAuthority())) {
-                            pathname = resolveGarbageUri(uri);
-                        }
-                        if (pathname == null) {
-                            pathname = uri.getPath();
-                        }
-                        File savegame = new File(pathname);
-                        boolean hasValidName = possibleSaves.contains(savegame.getName());
-                        if (hasValidName) {
-                            files.add(new Pair<>(uri, savegame));
+        if (data != null) {
+
+            Uri uri = data.getData();
+            if (uri != null) {
+                if(DocumentsContract.isTreeUri(uri)) {
+                    DocumentFile savegameFolder = DocumentFile.fromTreeUri(this, uri);
+                    if(savegameFolder != null) {
+                        DocumentFile[] savegameFiles = savegameFolder.listFiles();
+                        for (DocumentFile file : savegameFiles) {
+                            resolveFilebyUri(files, file.getUri());
                         }
                     }
+                } else {
+                    resolveSingleFile(data);
                 }
-
             }
 
-            files.forEach(p -> localFileAdapter.add(p));
-            //noinspection unchecked
-            ((ArrayAdapter<Pair<Uri, File>>) savegameListView.getAdapter()).notifyDataSetChanged();
-            refreshLayout.setRefreshing(false);
+        }
+
+        files.forEach(p -> localFileAdapter.add(p));
+        //noinspection unchecked
+        ((ArrayAdapter<Pair<Uri, File>>) savegameListView.getAdapter()).notifyDataSetChanged();
+    }
+
+    private void resolveSingleFile(@Nullable Intent data) {
+        ArrayList<Pair<Uri, File>> files = new ArrayList<>();
+
+        if (data != null) {
+            Uri uri = data.getData();
+            resolveFilebyUri(files, uri);
+        }
+
+        files.forEach(p -> localFileAdapter.add(p));
+        //noinspection unchecked
+        ((ArrayAdapter<Pair<Uri, File>>) savegameListView.getAdapter()).notifyDataSetChanged();
+    }
+
+    private void resolveFilebyUri(ArrayList<Pair<Uri, File>> files, Uri uri) {
+        if (uri != null) {
+            if (uri.getPath() != null) {
+                String pathname = null;
+                if ("com.android.externalstorage.documents".equals(uri.getAuthority())) {
+                    pathname = resolveGarbageUri(uri);
+                }
+                if (pathname == null) {
+                    pathname = uri.getPath();
+                }
+                File savegame = new File(pathname);
+                boolean hasValidName = possibleSaves.contains(savegame.getName());
+                if (hasValidName) {
+                    files.add(new Pair<>(uri, savegame));
+                }
+            }
         }
     }
 
     @Nullable
     private String resolveGarbageUri(Uri uri) {
-        final String docId = DocumentsContract.getDocumentId(uri);
+        final String docId  = DocumentsContract.getDocumentId(uri);
         final String[] split = docId.split(":");
         final String type = split[0];
 
@@ -209,7 +249,7 @@ public class SavegameActivity extends AppCompatActivity {
                 @Override
                 public void onChanged() {
                     super.onChanged();
-                    if(remoteSavegameAdapter.getCount() <= 0) {
+                    if (remoteSavegameAdapter.getCount() <= 0) {
                         noSavegamesFoundTextView.setVisibility(View.VISIBLE);
                         savegameListView.setVisibility(View.INVISIBLE);
                     } else {
@@ -226,7 +266,7 @@ public class SavegameActivity extends AppCompatActivity {
                 @Override
                 public void onChanged() {
                     super.onChanged();
-                    if(localFileAdapter.getCount() <= 0) {
+                    if (localFileAdapter.getCount() <= 0) {
                         noSavegamesFoundTextView.setVisibility(View.VISIBLE);
                         savegameListView.setVisibility(View.INVISIBLE);
                     } else {
@@ -241,16 +281,24 @@ public class SavegameActivity extends AppCompatActivity {
     }
 
     private void startLocalFileSearch() {
-        String searchMethod = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("searchMethod", getString(R.string.search_method_manual));
-        if (searchMethod.equals(getString(R.string.search_method_manual))) {
+        String searchMethod = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("searchMethod", getString(R.string.search_method_manual_file));
+        if (searchMethod.equals(getString(R.string.search_method_manual_file))) {
             new AlertDialog.Builder(this)
-                    .setMessage(R.string.file_selection_hint)
+                    .setMessage(R.string.file_selection_hint_file)
                     .setTitle(R.string.file_selection_hint_title)
                     .setNeutralButton(R.string.okay, (d, w) -> {
                         Intent searchIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                         searchIntent.addCategory(Intent.CATEGORY_OPENABLE);
                         searchIntent.setType("*/*");
-                        startActivityForResult(searchIntent, SELECT_SAVE_REQUEST_CODE);
+                        startActivityForResult(searchIntent, SELECT_SAVE_REQUEST_CODE_FILE);
+                    }).show();
+        } else if (searchMethod.equals(getString(R.string.search_method_manual_directory))) {
+            new AlertDialog.Builder(this)
+                    .setMessage(R.string.file_selection_hint_directory)
+                    .setTitle(R.string.file_selection_hint_title)
+                    .setNeutralButton(R.string.okay, (d, w) -> {
+                        Intent searchIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                        startActivityForResult(searchIntent, SELECT_SAVE_REQUEST_CODE_DIRECTORY);
                     }).show();
         } else if (searchMethod.equals(getString(R.string.search_method_command_line))) {
             runFileSearch(getStoragePath(), false);
@@ -293,7 +341,7 @@ public class SavegameActivity extends AppCompatActivity {
     }
 
     public void setLoading(boolean loading) {
-        if(refreshLayout != null) {
+        if (refreshLayout != null) {
             refreshLayout.setRefreshing(loading);
         }
     }

@@ -1,6 +1,7 @@
 <resources>
     <string-array name="search_methods">
-        <item>@string/search_method_manual</item>
+        <item>@string/search_method_manual_file</item>
+        <item>@string/search_method_manual_directory</item>
         <item>@string/search_method_command_line</item>
         <item>@string/search_method_file_api</item>
     </string-array>
