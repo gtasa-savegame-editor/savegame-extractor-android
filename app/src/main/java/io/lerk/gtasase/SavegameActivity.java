@@ -291,4 +291,10 @@ public class SavegameActivity extends AppCompatActivity {
     public String getServiceAddress() {
         return serviceAddress;
     }
+
+    public void setLoading(boolean loading) {
+        if(refreshLayout != null) {
+            refreshLayout.setRefreshing(loading);
+        }
+    }
 }

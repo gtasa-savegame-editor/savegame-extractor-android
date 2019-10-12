@@ -74,37 +74,39 @@ public class SavegameFileAdapter extends ArrayAdapter<Pair<Uri, File>> {
 
         savegameName.setText(item.getName());
         savegamePath.setText(item.getParent());
-        uploadButton.setOnClickListener(v -> {
-            Snackbar uploadingSnackbar = Snackbar.make(((SavegameActivity) getContext()).findViewById(R.id.serviceContent),
-                    R.string.uploading, Snackbar.LENGTH_INDEFINITE);
-
-            new SavegameUploadTask(uploadingSnackbar, item, serviceAddress, new SavegameUploadTask.Callback() {
-                @Override
-                public void call(@Nullable Throwable ex) {
-                    if (ex == null) {
-                        new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                .setTitle(R.string.upload_success_title)
-                                .setMessage(R.string.upload_success_message).show();
-                    } else {
-                        new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
-                                .setTitle(R.string.upload_error_title)
-                                .setMessage(ex.getMessage()).show();
-                    }
+        uploadButton.setOnClickListener(v -> new SavegameUploadTask(item, serviceAddress, new SavegameUploadTask.Callback() {
+            @Override
+            public void call(@Nullable Throwable ex) {
+                if (ex == null) {
+                    new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
+                            .setTitle(R.string.upload_success_title)
+                            .setMessage(R.string.upload_success_message).show();
+                } else {
+                    new AlertDialog.Builder(getContext()).setNeutralButton(R.string.okay, (d, i) -> d.dismiss())
+                            .setTitle(R.string.upload_error_title)
+                            .setMessage(ex.getMessage()).show();
                 }
+            }
 
-                @Override
-                @Nullable
-                public InputStream getInputStream() {
-                    try {
-                        return getContext().getContentResolver().openInputStream(uri);
-                    } catch (FileNotFoundException e) {
-                        Log.e(TAG, "Unable to open savegame!", e);
-                    }
-                    return null;
+            @Override
+            @Nullable
+            public InputStream getInputStream() {
+                try {
+                    return getContext().getContentResolver().openInputStream(uri);
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG, "Unable to open savegame!", e);
                 }
-            }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        });
+                return null;
+            }
+
+            @Override
+            public void setLoading(boolean loading) {
+                uploadButton.setEnabled(!loading);
+                ((SavegameActivity) getContext()).setLoading(loading);
+            }
+        }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR));
 
         return view;
     }
+
 }
