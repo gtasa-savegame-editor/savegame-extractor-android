@@ -1,4 +1,4 @@
-# GTA: SA Savegame Extractor (for Android)
+# GTA:SA Savegame Extractor (for Android)
 ![CI build badge](https://travis-ci.org/gtasa-savegame-editor/savegame-extractor-android.svg?branch=master)
 ![License badge](https://img.shields.io/github/license/gtasa-savegame-editor/savegame-extractor-android)
 [![Latest version badge](https://img.shields.io/github/v/release/gtasa-savegame-editor/savegame-extractor-android?sort=semver)](https://github.com/gtasa-savegame-editor/savegame-extractor-android/releases/latest)
