@@ -4,6 +4,7 @@ android {
     compileSdkVersion 29
     defaultConfig {
         applicationId "io.lerk.gtasase"
+        buildToolsVersion '29.0.0'
         minSdkVersion 26
         targetSdkVersion 29
         versionCode 1
@@ -15,6 +16,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    lintOptions {
+        abortOnError false
     }
     compileOptions {
         sourceCompatibility = '1.8'
