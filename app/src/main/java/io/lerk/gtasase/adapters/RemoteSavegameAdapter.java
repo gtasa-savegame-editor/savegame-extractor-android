@@ -16,12 +16,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.material.snackbar.Snackbar;
-
 import java.io.File;
 
 import io.lerk.gtasase.R;
-import io.lerk.gtasase.ServiceActivity;
 
 public class RemoteSavegameAdapter extends ArrayAdapter<Pair<Uri, File>> {
     private final String serviceAddress;
@@ -39,7 +36,7 @@ public class RemoteSavegameAdapter extends ArrayAdapter<Pair<Uri, File>> {
             if (convertView != null) {
                 return initView(convertView, item.second);
             } else {
-                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_savegame, parent, false), item.second);
+                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_savegame_item, parent, false), item.second);
             }
         }
         return convertView;

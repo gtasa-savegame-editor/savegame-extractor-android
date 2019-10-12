@@ -33,13 +33,13 @@ import io.lerk.gtasase.adapters.SavegameFileAdapter;
 import io.lerk.gtasase.tasks.FileSearchTask;
 import io.lerk.gtasase.tasks.SavegamesFetchTask;
 
-public class ServiceActivity extends AppCompatActivity {
+public class SavegameActivity extends AppCompatActivity {
 
     public static final String PROTO_VERSION = "1";
 
     public static final String SERVICE_ADDRESS_KEY = "serviceAddress";
     public static final String SERVICE_PORT_KEY = "servicePort";
-    private static final String TAG = ServiceActivity.class.getCanonicalName();
+    private static final String TAG = SavegameActivity.class.getCanonicalName();
     private static final int SELECT_SAVE_REQUEST_CODE = 42;
     private static final ArrayList<String> possibleSaves = new ArrayList<>(Arrays.asList(
             "GTASAsf1.b", "GTASAsf2.b", "GTASAsf3.b", "GTASAsf4.b", "GTASAsf5.b", "GTASAsf6.b", "GTASAsf7.b", "GTASAsf8.b"));
@@ -62,7 +62,7 @@ public class ServiceActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_service);
+        setContentView(R.layout.activity_savegame);
 
         refreshLayout = findViewById(R.id.savegameRefreshLayout);
         refreshLayout.setEnabled(false);
@@ -196,11 +196,11 @@ public class ServiceActivity extends AppCompatActivity {
     private void onLocalViewUpdated() {
         updateToolbar();
         if (!localView) {
-            remoteSavegameAdapter = new RemoteSavegameAdapter(this, R.layout.layout_savegame_remote, serviceAddress);
+            remoteSavegameAdapter = new RemoteSavegameAdapter(this, R.layout.layout_savegame_item_remote, serviceAddress);
             savegameListView.setAdapter(remoteSavegameAdapter);
             new SavegamesFetchTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
-            localFileAdapter = new SavegameFileAdapter(this, R.layout.layout_savegame, serviceAddress, servicePort);
+            localFileAdapter = new SavegameFileAdapter(this, R.layout.layout_savegame_item, serviceAddress, servicePort);
             savegameListView.setAdapter(localFileAdapter);
             startLocalFileSearch();
         }

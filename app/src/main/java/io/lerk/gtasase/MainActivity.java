@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
         ListView serviceList = findViewById(R.id.serviceList);
         serviceList.setVisibility(View.INVISIBLE);
-        ServiceInfoAdapter adapter = new ServiceInfoAdapter(this, R.layout.layout_service);
+        ServiceInfoAdapter adapter = new ServiceInfoAdapter(this, R.layout.layout_service_item);
         adapter.setNotifyOnChange(true); // !!!!
         adapter.registerDataSetObserver(new DataSetObserver() {
             @Override

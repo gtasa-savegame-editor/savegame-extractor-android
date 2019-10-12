@@ -1,7 +1,6 @@
 package io.lerk.gtasase.tasks;
 
 import android.annotation.SuppressLint;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -16,7 +15,7 @@ import java.io.InputStream;
 
 import io.lerk.gtasase.MultipartUtility;
 
-import static io.lerk.gtasase.ServiceActivity.PROTO_VERSION;
+import static io.lerk.gtasase.SavegameActivity.PROTO_VERSION;
 
 /**
  * {@link AsyncTask} used to upload a savegame to the editor.

@@ -24,7 +24,7 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" />
-        <activity android:name=".ServiceActivity" />
+        <activity android:name=".SavegameActivity" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"

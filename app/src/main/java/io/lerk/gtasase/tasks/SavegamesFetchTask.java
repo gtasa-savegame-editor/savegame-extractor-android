@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import io.lerk.gtasase.R;
-import io.lerk.gtasase.ServiceActivity;
+import io.lerk.gtasase.SavegameActivity;
 
 public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<Pair<Uri, File>>> {
 
@@ -31,7 +31,7 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<Pair<Uri
 
     private final ActivityCallback activityCallback;
 
-    public SavegamesFetchTask(ServiceActivity activity) {
+    public SavegamesFetchTask(SavegameActivity activity) {
         this.activityCallback = generateActivityCallback(activity);
     }
 
@@ -94,7 +94,7 @@ public class SavegamesFetchTask extends AsyncTask<Void, Void, ArrayList<Pair<Uri
         }
     }
 
-    private ActivityCallback generateActivityCallback(ServiceActivity activity) {
+    private ActivityCallback generateActivityCallback(SavegameActivity activity) {
         return new ActivityCallback() {
             @Override
             public void setLoading(boolean loading) {

@@ -23,7 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import io.lerk.gtasase.R;
-import io.lerk.gtasase.ServiceActivity;
+import io.lerk.gtasase.SavegameActivity;
 import io.lerk.gtasase.tasks.SavegameUploadTask;
 
 /**
@@ -45,7 +45,7 @@ public class SavegameFileAdapter extends ArrayAdapter<Pair<Uri, File>> {
      * @param serviceAddress the address of the savegame editor
      * @param servicePort    the port of the savegame editor
      */
-    public SavegameFileAdapter(ServiceActivity activity, @LayoutRes int layoutId, String serviceAddress, int servicePort) {
+    public SavegameFileAdapter(SavegameActivity activity, @LayoutRes int layoutId, String serviceAddress, int servicePort) {
         super(activity, layoutId);
 
         this.serviceAddress = serviceAddress;
@@ -60,7 +60,7 @@ public class SavegameFileAdapter extends ArrayAdapter<Pair<Uri, File>> {
             if (convertView != null) {
                 return initView(convertView, item.second, item.first);
             } else {
-                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_savegame, parent, false), item.second, item.first);
+                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_savegame_item, parent, false), item.second, item.first);
             }
         }
         return convertView;
@@ -75,7 +75,7 @@ public class SavegameFileAdapter extends ArrayAdapter<Pair<Uri, File>> {
         savegameName.setText(item.getName());
         savegamePath.setText(item.getParent());
         uploadButton.setOnClickListener(v -> {
-            Snackbar uploadingSnackbar = Snackbar.make(((ServiceActivity) getContext()).findViewById(R.id.serviceContent),
+            Snackbar uploadingSnackbar = Snackbar.make(((SavegameActivity) getContext()).findViewById(R.id.serviceContent),
                     R.string.uploading, Snackbar.LENGTH_INDEFINITE);
 
             new SavegameUploadTask(uploadingSnackbar, item, serviceAddress, new SavegameUploadTask.Callback() {

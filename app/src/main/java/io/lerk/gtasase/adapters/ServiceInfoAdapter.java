@@ -19,7 +19,7 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.ServiceInfoImpl;
 
 import io.lerk.gtasase.R;
-import io.lerk.gtasase.ServiceActivity;
+import io.lerk.gtasase.SavegameActivity;
 
 public class ServiceInfoAdapter extends ArrayAdapter<ServiceInfo> {
 
@@ -37,7 +37,7 @@ public class ServiceInfoAdapter extends ArrayAdapter<ServiceInfo> {
             if (convertView != null) {
                 return initView(convertView, serviceInfo);
             } else {
-                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_service, parent, false), serviceInfo);
+                return initView(LayoutInflater.from(getContext()).inflate(R.layout.layout_service_item, parent, false), serviceInfo);
             }
         } else {
             return convertView;
@@ -66,14 +66,14 @@ public class ServiceInfoAdapter extends ArrayAdapter<ServiceInfo> {
         serviceAddress.setText(serviceAddressString);
         final String finalServiceAddressString = serviceAddressString;
         connectButton.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), ServiceActivity.class);
+            Intent intent = new Intent(getContext(), SavegameActivity.class);
             ArrayList<String> strings = new ArrayList<>();
             Arrays.asList(serviceInfo.getInetAddresses()).forEach(s -> strings.add(s.toString().replaceAll("/", "")));
             if (strings.size() <= 0) {
                 strings.add(finalServiceAddressString);
             }
-            intent.putStringArrayListExtra(ServiceActivity.SERVICE_ADDRESS_KEY, strings);
-            intent.putExtra(ServiceActivity.SERVICE_PORT_KEY, serviceInfo.getPort());
+            intent.putStringArrayListExtra(SavegameActivity.SERVICE_ADDRESS_KEY, strings);
+            intent.putExtra(SavegameActivity.SERVICE_PORT_KEY, serviceInfo.getPort());
             getContext().startActivity(intent);
         });
 

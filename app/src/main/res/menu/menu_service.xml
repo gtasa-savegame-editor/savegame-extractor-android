@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="io.lerk.gtasase.ServiceActivity">
+    tools:context="io.lerk.gtasase.SavegameActivity">
 
     <item
         android:id="@+id/menu_main_setting"
