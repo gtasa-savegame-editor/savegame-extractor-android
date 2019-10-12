@@ -64,4 +64,5 @@
     <string name="no_services_found">No services found (yet). Make sure your phone is in the same WiFi as the Savegame Editor and your Firewall permits connections.</string>
     <string name="file_selection_hint">Since \"manual\" file discovery is selected in the settings, this app will now open a file selection dialog. Please select a savegame (slot 1–8).</string>
     <string name="file_selection_hint_title">Manual Mode</string>
+    <string name="no_savegames_found">No savegames found!</string>
 </resources>

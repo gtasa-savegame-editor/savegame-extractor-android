@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,8 +14,10 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -58,6 +61,7 @@ public class SavegameActivity extends AppCompatActivity {
     private SwipeRefreshLayout refreshLayout;
     private int servicePort;
     private RemoteSavegameAdapter remoteSavegameAdapter;
+    private TextView noSavegamesFoundTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +71,8 @@ public class SavegameActivity extends AppCompatActivity {
         refreshLayout = findViewById(R.id.savegameRefreshLayout);
         refreshLayout.setEnabled(false);
         refreshLayout.setColorSchemeResources(R.color.primaryLightColor, R.color.primaryColor, R.color.primaryDarkColor);
+
+        noSavegamesFoundTextView = findViewById(R.id.noSavegamesFoundText);
 
         Intent intent = getIntent();
 
@@ -195,12 +201,40 @@ public class SavegameActivity extends AppCompatActivity {
 
     private void onLocalViewUpdated() {
         updateToolbar();
+        noSavegamesFoundTextView.setVisibility(View.VISIBLE);
+        savegameListView.setVisibility(View.INVISIBLE);
         if (!localView) {
             remoteSavegameAdapter = new RemoteSavegameAdapter(this, R.layout.layout_savegame_item_remote, serviceAddress);
+            remoteSavegameAdapter.registerDataSetObserver(new DataSetObserver() {
+                @Override
+                public void onChanged() {
+                    super.onChanged();
+                    if(remoteSavegameAdapter.getCount() <= 0) {
+                        noSavegamesFoundTextView.setVisibility(View.VISIBLE);
+                        savegameListView.setVisibility(View.INVISIBLE);
+                    } else {
+                        noSavegamesFoundTextView.setVisibility(View.GONE);
+                        savegameListView.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
             savegameListView.setAdapter(remoteSavegameAdapter);
             new SavegamesFetchTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
             localFileAdapter = new SavegameFileAdapter(this, R.layout.layout_savegame_item, serviceAddress, servicePort);
+            localFileAdapter.registerDataSetObserver(new DataSetObserver() {
+                @Override
+                public void onChanged() {
+                    super.onChanged();
+                    if(localFileAdapter.getCount() <= 0) {
+                        noSavegamesFoundTextView.setVisibility(View.VISIBLE);
+                        savegameListView.setVisibility(View.INVISIBLE);
+                    } else {
+                        noSavegamesFoundTextView.setVisibility(View.GONE);
+                        savegameListView.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
             savegameListView.setAdapter(localFileAdapter);
             startLocalFileSearch();
         }
