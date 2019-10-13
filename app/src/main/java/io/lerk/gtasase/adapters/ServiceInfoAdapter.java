@@ -18,6 +18,7 @@ import java.util.Arrays;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.impl.ServiceInfoImpl;
 
+import io.lerk.gtasase.MainActivity;
 import io.lerk.gtasase.R;
 import io.lerk.gtasase.SavegameActivity;
 
@@ -75,6 +76,7 @@ public class ServiceInfoAdapter extends ArrayAdapter<ServiceInfo> {
             intent.putStringArrayListExtra(SavegameActivity.SERVICE_ADDRESS_KEY, strings);
             intent.putExtra(SavegameActivity.SERVICE_PORT_KEY, serviceInfo.getPort());
             getContext().startActivity(intent);
+            ((MainActivity) getContext()).finish();
         });
 
         return view;

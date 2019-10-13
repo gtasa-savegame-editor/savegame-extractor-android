@@ -67,4 +67,5 @@
     <string name="file_selection_hint_directory">Since \"manual\" file discovery is selected in the settings, this app will now open a file selection dialog. Please select a folder containing savegames.</string>
     <string name="file_selection_hint_title">Manual Mode</string>
     <string name="no_savegames_found">No savegames found!</string>
+    <string name="invalid_service">Invalid service!</string>
 </resources>
