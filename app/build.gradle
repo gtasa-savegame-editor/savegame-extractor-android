@@ -8,8 +8,9 @@ android {
         minSdkVersion 26
         targetSdkVersion 29
         versionCode 2
-        versionName "1.0.0-dev"
+        versionName '1.0.0'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        versionNameSuffix 'dev'
     }
     buildTypes {
         release {
@@ -24,13 +25,14 @@ android {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
+    buildToolsVersion = '29.0.3'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.material:material:1.1.0'
     implementation "androidx.preference:preference:1.1.0"
     implementation 'org.jmdns:jmdns:3.5.5'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.10.0'
